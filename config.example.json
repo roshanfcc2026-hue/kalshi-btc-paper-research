@@ -1,0 +1,21 @@
+{
+  "series": [
+    "KXBTC15M"
+  ],
+  "poll_seconds": 15,
+  "paper_bankroll": 1000,
+  "max_open_exposure": 10,
+  "daily_loss_limit": 20,
+  "fee_rate": 0.07,
+  "slippage": 0.01,
+  "minimum_edge": 0.04,
+  "max_request_seconds": 3,
+  "min_training_markets": 200,
+  "live_predictions": true,
+  "spot_max_age_seconds": 30,
+  "spot_max_request_seconds": 8,
+  "openai_enabled": false,
+  "openai_max_calls_per_day": 24,
+  "openai_max_latency_seconds": 30,
+  "rules_and_fees_reviewed": false
+}

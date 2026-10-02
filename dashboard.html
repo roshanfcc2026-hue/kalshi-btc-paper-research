@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crypto Research · Live forecasts</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0c121d;color:#e8eef8}*{box-sizing:border-box}body{margin:0}main{max-width:1100px;margin:auto;padding:42px 24px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}h1{font-size:32px;margin:8px 0}h2{font-size:19px}p{line-height:1.6;color:#aebdd2}.label{color:#64dbc2;letter-spacing:.1em;font-size:12px;text-transform:uppercase}.badge{border:1px solid #355269;border-radius:30px;padding:8px 14px;font-size:13px}#notice{background:#1b2739;border-left:3px solid #e8b765;padding:12px 16px;margin:22px 0;color:#ecdbbb}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.card{background:#141e2e;border:1px solid #28374b;border-radius:14px;padding:24px}.value{font-size:38px;font-weight:650;letter-spacing:-.04em;margin:10px 0}.muted{color:#97a9c3;font-size:13px}.bar{height:8px;background:#28374b;border-radius:10px;overflow:hidden;margin-top:18px}.bar span{display:block;background:#64dbc2;height:100%;width:50%}section{margin-top:28px}table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:#97a9c3;font-weight:400}td,th{padding:14px 10px;border-bottom:1px solid #28374b}.scroll{overflow-x:auto}#review{white-space:pre-wrap}footer{margin-top:28px;font-size:13px;color:#97a9c3}@media(max-width:700px){.grid{grid-template-columns:1fr}header{display:block}.value{font-size:32px}}
+/* Current and upcoming market forecast */
+main{max-width:1220px}h1{font-size:34px;letter-spacing:-.035em}.intro{margin:5px 0 0;font-size:15px}.header-status{text-align:right;flex-shrink:0}.header-status .badge{display:inline-block;color:#c2d0e4}.header-status .muted{margin-top:12px}#notice{border-radius:8px;font-size:14px;padding:12px 16px;margin:26px 0 20px}.forecast-grid{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(285px,1fr);gap:20px;align-items:stretch}.forecast-grid section{margin-top:0}.current-card{padding:28px;background:linear-gradient(130deg,#17273a,#131d2d 75%)}.panel-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}.panel-heading h2,.next-card h2{margin:8px 0 0;font-size:22px;letter-spacing:-.025em}.state-badge{padding:6px 10px;border:1px solid #405269;color:#bbccdf;border-radius:24px;font-size:12px;white-space:nowrap}.state-badge[data-state="valid"]{border-color:#357365;color:#84e4c9}.forecast-main{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:29px 0 24px}.direction{font-size:36px;font-weight:650;letter-spacing:-.04em;line-height:1.25;margin-top:5px}.direction[data-side="YES"]{color:#79e3c7}.direction[data-side="NO"]{color:#ffb3a4}.countdown-block{text-align:right;white-space:nowrap}.countdown{font-size:29px;margin-top:5px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}.probabilities{display:flex;justify-content:space-between;gap:18px}.probabilities>div{display:flex;flex-direction:column;gap:5px}.probabilities strong{font-size:40px;letter-spacing:-.045em;line-height:1.2;color:#82e5cd}.probabilities .no-prob{align-items:flex-end}.probabilities .no-prob strong{color:#ffb3a4}.probability-track{height:7px;margin-top:16px;overflow:hidden;border-radius:8px;background:#bb8077}.probability-track span{display:block;height:100%;background:#79dfc3;width:0;transition:width .35s}.probability-track[data-empty="true"]{background:#2a3a4d}.forecast-meta{font-size:12px;color:#a8b8cd;margin-top:12px;min-height:18px}.quote-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;padding:23px 0;margin-top:5px}.quote-grid span{display:block;font-size:12px;color:#9aadc5;margin-bottom:8px}.quote-grid strong{font-size:18px;font-weight:550;white-space:nowrap}.strategy{padding:16px;border-radius:10px;background:#26303a;border:1px solid #66573e;display:flex;flex-direction:column;gap:6px}.strategy strong{font-size:17px;color:#f0ca86}.strategy span{font-size:13px;color:#d2c6b3;line-height:1.5}.definition{font-size:12px;line-height:1.6;margin:16px 0 10px;color:#97a9c3}.contract-id{font-size:11px;overflow-wrap:anywhere}.next-column{display:flex;flex-direction:column;gap:20px}.next-card{flex:1;padding:25px}.next-card p{font-size:13px;line-height:1.6}.next-countdown{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:23px 0}.next-countdown strong{font-size:29px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}.waiting-label{display:flex;align-items:center;gap:8px;color:#c3d3e6;font-size:13px}.waiting-dot{height:7px;width:7px;border-radius:50%;background:#9aaccc;flex-shrink:0}.next-pending{display:flex;justify-content:space-between;font-size:12px;color:#a4b6cd;padding:11px 0;border-bottom:1px solid #28374b;gap:10px}.next-pending strong{font-weight:450;color:#d0dcec}.results-card{padding:23px}.results-card .value{font-size:34px;margin:8px 0}.results-card p{font-size:12px;margin:12px 0 0}.next-card .label{color:#a2b7db}.current-card h2,.next-card h2{line-height:1.4}@media(max-width:950px){.forecast-grid{grid-template-columns:minmax(0,1.5fr) minmax(265px,1fr)}.current-card{padding:22px}.direction{font-size:30px}.quote-grid{grid-template-columns:1fr 1fr}.quote-grid>div:last-child{grid-column:1/-1}}@media(max-width:750px){main{padding:25px 17px}.forecast-grid{grid-template-columns:1fr}.header-status{text-align:left;margin-top:18px}.header-status .muted{display:inline-block;margin:0 0 0 10px}h1{font-size:29px}.panel-heading h2,.next-card h2{font-size:21px}.next-column{display:grid;grid-template-columns:1fr}.current-card{padding:22px}.direction{font-size:30px}.probabilities strong{font-size:36px}.quote-grid{grid-template-columns:1fr 1fr 1fr;gap:10px}.quote-grid>div:last-child{grid-column:auto}.quote-grid strong{font-size:15px}.quote-grid span{font-size:11px}.panel-heading{flex-wrap:wrap}}@media(max-width:390px){.quote-grid{grid-template-columns:1fr 1fr}.quote-grid>div:last-child{grid-column:1/-1}.direction{font-size:27px}.countdown{font-size:25px}}
+
+
+.wrong-summary{display:grid;grid-template-columns:180px 1fr;gap:28px;margin:25px 0 15px;align-items:center}.wrong-summary .value{color:#ffb3a4;margin:3px 0}#wrong-latest{font-size:21px;font-weight:600;margin:8px 0}.wrong-history table{min-width:1040px}.wrong-history td{vertical-align:top;font-variant-numeric:tabular-nums}.wrong-result{color:#ffb3a4;font-weight:600}.mistake-detail{font-size:11px;line-height:1.5;margin-top:5px}.wrong-history th{font-size:12px}.mistakes-link{color:#8ae4cd;font-size:13px}#wrong-show-more{margin-top:18px;background:#213248;border:1px solid #50657c;color:#e8eef8;border-radius:8px;padding:10px 14px;cursor:pointer}#wrong-history-status[data-state="unavailable"]{color:#f0ca86}.wrong-history{scroll-margin-top:20px}@media(max-width:650px){.wrong-summary{grid-template-columns:1fr;gap:18px}}
+
+@media(max-width:750px){.wrong-history table{min-width:0;display:block}.wrong-history thead{display:none}.wrong-history tbody{display:block}.wrong-history tr{display:block;border-top:1px solid #3c4e64;padding:15px 0}.wrong-history td{display:block;position:relative;border:0;padding:7px 0 7px 108px;min-height:34px;overflow-wrap:anywhere}.wrong-history td::before{content:attr(data-label);position:absolute;left:0;top:8px;width:100px;color:#97a9c3;font-size:12px;font-weight:400}.wrong-history .scroll{overflow:visible}}
+
+.live-number{margin-top:16px;padding:10px 12px;border:1px solid #35576a;border-radius:8px;color:#9ee5d4;font-size:13px;line-height:1.6}.wrong-number-block{padding:16px 0;border-top:1px solid #35475c}.wrong-number-block p{margin:7px 0 12px}#wrong-market-numbers{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}.wrong-number-chip{color:#ffb3a4;border:1px solid #725552;background:#34282d;border-radius:6px;padding:5px 8px;font-size:13px;font-variant-numeric:tabular-nums}#live-forecast{scroll-margin-top:20px}
+
+.paper-panel{scroll-margin-top:20px}.paper-panel a{color:#8ae4cd}.paper-calls{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:22px 0}.paper-calls>div{background:#101b29;border:1px solid #32465c;border-radius:9px;padding:15px}.paper-calls span{display:block;margin-bottom:8px}.paper-calls div div{font-size:13px;line-height:1.6}.paper-position-label{display:block;margin:18px 0 9px;font-size:14px}#paper-position{width:100%;max-width:560px;background:#203147;color:#e8eef8;border:1px solid #51657d;border-radius:8px;padding:12px;font-size:14px}.paper-action-box{background:#172435;border:1px solid #4b5b6e;border-radius:10px;padding:20px;margin-top:20px}#paper-action{font-size:28px;font-weight:650;color:#f0ca86;margin-top:7px}#paper-action[data-action^="BUY"]{color:#8ae4cd}#paper-action[data-action^="SELL"]{color:#ffb3a4}#paper-reason{margin:8px 0 14px}.paper-values td{font-variant-numeric:tabular-nums}.paper-values{min-width:680px}@media(max-width:750px){.paper-calls{grid-template-columns:1fr}.paper-values{display:block;min-width:0}.paper-values thead{display:none}.paper-values tbody{display:grid;grid-template-columns:1fr 1fr;gap:12px}.paper-values tr{display:block;background:#101b29;border:1px solid #32465c;border-radius:8px;padding:12px}.paper-values td{display:block;border:0;padding:8px 0}.paper-values td[data-label]::before{content:attr(data-label);display:block;font-size:11px;color:#97a9c3;margin-bottom:5px}.paper-values td:first-child{font-weight:650;color:#8ae4cd}}
+.paper-original{margin:20px 0;padding:20px;background:#102633;border:1px solid #46796f;border-radius:12px}.paper-original .direction{font-size:38px;margin:10px 0}.paper-original p{margin:9px 0;line-height:1.5}#paper-official-outcome{border-top:1px solid #36564f;padding-top:12px;margin-top:12px;color:#e4d5b2;font-size:13px}.paper-live-update{padding:16px;background:#101b29;border:1px solid #32465c;border-radius:9px}.paper-live-update #paper-latest-call{font-size:15px;line-height:1.6;margin-top:8px}.paper-live-update p{margin-bottom:0}
+.paper-prediction-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}.paper-prediction-pair>div{min-width:0;margin:0;padding:14px}.paper-prediction-pair .direction,.paper-prediction-pair #paper-latest-call{font-size:26px;font-weight:650;line-height:1.2;margin:12px 0;overflow-wrap:anywhere}.paper-prediction-pair p{font-size:12px;line-height:1.5;margin:8px 0}.paper-prediction-pair .label{font-size:11px;letter-spacing:.05em}.paper-live-update{border-color:#62768d}#paper-change-note{color:#efce92}@media(max-width:380px){.paper-prediction-pair{gap:8px}.paper-prediction-pair>div{padding:10px}.paper-prediction-pair .direction,.paper-prediction-pair #paper-latest-call{font-size:21px}}
+
+/* Presentation only; all calculations and evidence remain in existing panels. */
+:root{font-family:Segoe UI,system-ui,sans-serif;background:#0b111a}main{max-width:1400px;padding:28px 32px}header{padding-bottom:22px;border-bottom:1px solid #2c394b}header h1{font-size:29px}.analytics-nav{display:flex;gap:5px;flex-wrap:wrap;background:#111b29;border:1px solid #29384b;padding:6px;border-radius:10px;margin:20px 0}.analytics-nav a{color:#9fadc1;text-decoration:none;padding:11px 17px;font-size:14px;border-radius:6px}.analytics-nav a:hover{background:#223047;color:#fff}.analytics-nav a[aria-current=page]{color:#131920;background:#efc44e;font-weight:650}.analytics-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.analytics-kpis>div{background:#172231;border:1px solid #2b3b50;border-top:3px solid #d8b54c;padding:17px 19px;border-radius:8px}.analytics-kpis span{display:block;color:#a9b8cb;font-size:12px}.analytics-kpis strong{display:block;font-size:29px;letter-spacing:-.03em;margin-top:8px;font-variant-numeric:tabular-nums}.analytics-kpis>div:nth-child(2){border-top-color:#58c7af}.analytics-kpis>div:nth-child(3){border-top-color:#e69c97}.analytics-kpis>div:nth-child(4){border-top-color:#7ea7e9}.analytics-pane[hidden]{display:none!important}.card{border-radius:9px;background:#142030;box-shadow:0 3px 10px #00000010}.analytics-bar-row{display:grid;grid-template-columns:150px 1fr 70px;align-items:center;gap:15px;margin:20px 0;font-size:13px}.analytics-bar-row strong{text-align:right;font-variant-numeric:tabular-nums}.analytics-track{background:#26374a;border-radius:4px;overflow:hidden;height:25px}.analytics-track>div{height:100%;min-width:0}.model-bar{background:#efc44e}.market-bar{background:#69b9da}.analytics-filters{display:flex;gap:18px;align-items:end;flex-wrap:wrap;margin:18px 0}.analytics-filters label{font-size:12px;color:#a9b8cb}.analytics-filters input{display:block;background:#0e1825;border:1px solid #4a6077;color:#e8eef8;border-radius:5px;padding:11px;margin-top:8px;min-width:250px}th{background:#1b2b3e;font-size:12px}tbody tr:hover{background:#203044}#analytics-data-status{font-size:11px;line-height:1.7;margin:12px 0}#notice{margin:14px 0;font-size:12px}.analytics-comparison{margin-top:20px}a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #efc44e;outline-offset:3px}@media(max-width:750px){main{padding:20px 16px}.analytics-kpis{grid-template-columns:repeat(2,1fr);gap:10px}.analytics-kpis>div{padding:13px 15px}.analytics-kpis strong{font-size:25px}.analytics-nav{gap:3px}.analytics-nav a{padding:10px 12px;font-size:12px}.analytics-bar-row{grid-template-columns:105px 1fr 50px;gap:9px;font-size:12px}.analytics-filters input{min-width:0;width:100%}.header-status{margin-top:12px}}
+
+.analytics-nav{position:sticky;top:0;z-index:20;box-shadow:0 5px 15px #0004}
+</style></head><body><main>
+<header><div><div class="label">Kalshi · BTC 15 minute research</div><h1>Your next BTC forecast</h1><p class="intro">Follow this cycle, then watch the next one open.</p></div><div class="header-status"><span class="badge">Paper observation</span><div id="live-clock" class="muted">All times Pacific</div></div></header>
+<div id="notice" role="status">Connecting to your local recorder…</div>
+<div class="forecast-grid">
+  <section class="card current-card" id="live-forecast" aria-labelledby="current-heading">
+    <div class="panel-heading"><div><div class="label" id="current-label">This cycle</div><h2 id="current-heading">Loading market window…</h2></div><span class="state-badge" id="forecast-state">Waiting</span></div>
+    <div class="live-number" id="live-market-number">Market number pending</div>
+    <div class="forecast-main"><div><div class="muted">Live estimate · can change</div><div class="direction" id="direction">Waiting for data</div></div><div class="countdown-block"><div class="muted">Closes in</div><div class="countdown" id="close-countdown">—</div></div></div>
+    <div class="probabilities"><div><span class="muted">UP / YES</span><strong id="prob-yes">—</strong></div><div class="no-prob"><span class="muted">DOWN / NO</span><strong id="prob-no">—</strong></div></div>
+    <div class="probability-track" aria-hidden="true"><span id="probability-fill"></span></div>
+    <div class="forecast-meta" id="forecast-time">No valid forecast yet</div>
+    <div class="quote-grid"><div><span>BTC proxy · Coinbase</span><strong id="price">—</strong></div><div><span>Kalshi target</span><strong id="target">—</strong></div><div><span>YES ask / NO ask</span><strong id="paired-asks">— / —</strong></div></div>
+    <div class="strategy"><strong>Strategy: SKIP</strong><span id="strategy-reason">Paper observation only. Waiting for fresh evidence.</span></div>
+    <p><a class="mistakes-link" href="#paper-trading">View paper buy / sell signals →</a></p><p class="definition">YES means the official settlement average is at least the target. A directional lean is a forecast, not a buy signal.</p>
+    <div class="muted contract-id" id="contract">Contract not yet confirmed</div>
+  </section>
+  <aside class="next-column">
+    <section class="card next-card" aria-labelledby="next-heading"><div class="label">Up next · expected window</div><h2 id="next-heading">Loading next cycle…</h2><div class="next-countdown"><span class="muted">Opens in</span><strong id="next-countdown">—</strong></div><div class="waiting-label"><span class="waiting-dot"></span>Waiting for the next contract</div><p>The next prediction appears here when its cycle opens and fresh data arrives.</p><div class="next-pending"><span>YES / NO forecast</span><strong>Pending</strong></div><div class="next-pending"><span>Target &amp; entry prices</span><strong>Pending</strong></div><p class="muted">Checks for updates every 5 seconds. No next-cycle probability is available yet.</p></section>
+    <section class="card results-card"><div class="muted">First forecasts scored against official outcomes</div><div class="value" id="count">—</div><div class="muted" id="accuracy">Waiting for recorded results</div><p class="muted">One forecast per market. Original misses stay in the record.</p><a class="mistakes-link" href="#wrong-predictions">View wrong predictions and numbers →</a></section>
+  </aside>
+</div>
+<section class="card paper-panel" id="paper-trading" aria-labelledby="paper-heading">
+  <div class="panel-heading"><div><div class="label">Prediction · then paper trading</div><h2 id="paper-heading">Original prediction & live update</h2></div><span class="state-badge">Experimental</span></div>
+  <p class="muted" id="paper-prediction-window">Waiting for the active market</p>
+  <div class="paper-prediction-pair">
+    <div class="paper-original"><div class="label">Original · fixed</div><div class="direction" id="paper-first-call">Not yet recorded</div><p class="muted" id="paper-first-detail">Waiting for the original forecast.</p><p class="muted">Scored once after settlement.</p></div>
+    <div class="paper-live-update"><div class="label">Live · updating</div><div class="direction" id="paper-latest-call">Waiting for live evidence</div><p class="muted" id="paper-live-detail">Waiting for a fresh update.</p><p class="muted">Changes as new prices arrive.</p></div>
+  </div>
+  <p class="muted" id="paper-change-note">The original prediction is preserved.</p>
+  <div id="paper-official-outcome">Official outcome: PENDING</div>
+  <p class="muted">Both are experimental forecasts, not guaranteed outcomes or instructions to trade.</p>
+  <label class="paper-position-label" for="paper-position">Hypothetical position in this market</label>
+  <select id="paper-position"><option value="none">No position — consider a paper entry</option><option value="yes">Holding 1 YES — compare holding vs selling</option><option value="no">Holding 1 NO — compare holding vs selling</option></select>
+  <p class="muted">This selector is a what-if scenario, not your account balance. It resets for each new market.</p>
+  <div class="paper-action-box"><div class="muted">Paper action now</div><div id="paper-action">SKIP</div><p id="paper-reason" role="status">Waiting for paired forecast and order book.</p><div class="muted" id="paper-recorded-signal">No eligible snapshot analysis.</div></div>
+  <p class="muted" id="paper-quote-time">No current paired quote</p>
+  <div class="scroll"><table class="paper-values"><thead><tr><th>Contract</th><th>Model value</th><th>Buy ask</th><th>Sell bid</th><th>Buy expected edge*</th><th>Sell vs hold edge*</th></tr></thead><tbody>
+    <tr><td>YES</td><td data-label="Model value" id="paper-yes-value">—</td><td data-label="Buy ask" id="paper-yes-ask">—</td><td data-label="Sell bid" id="paper-yes-bid">—</td><td data-label="Buy expected edge" id="paper-yes-buy-ev">—</td><td data-label="Sell vs hold edge" id="paper-yes-sell-ev">—</td></tr>
+    <tr><td>NO</td><td data-label="Model value" id="paper-no-value">—</td><td data-label="Buy ask" id="paper-no-ask">—</td><td data-label="Sell bid" id="paper-no-bid">—</td><td data-label="Buy expected edge" id="paper-no-buy-ev">—</td><td data-label="Sell vs hold edge" id="paper-no-sell-ev">—</td></tr>
+  </tbody></table></div>
+  <p class="muted">*Per hypothetical contract, after estimated taker fees. Buy only if expected edge exceeds 3¢; sell only if net bid proceeds exceed the model’s expected settlement value by more than 3¢. HOLD is shown otherwise for an existing hypothetical position. Missing, stale, final-minute or insufficient-depth evidence produces SKIP. No new entry on a near-50% forecast.</p>
+  <div class="strategy"><strong>Real-money strategy: SKIP</strong><span>The model is unvalidated. These calculations are experimental; no orders, positions, fills or profits are created.</span></div>
+  <p class="muted">Fee scenario: multiplier 1, one taker fill, balances rounded to cents. Your account fees and current event overrides have not been verified. Quotes can move; fills are not guaranteed. <a href="https://kalshi.com/docs/kalshi-fee-schedule.pdf" target="_blank" rel="noreferrer">Official fee schedule</a> · <a href="https://docs.kalshi.com/getting_started/fee_rounding" target="_blank" rel="noreferrer">Rounding rules</a></p>
+  <div id="paper-contract" class="muted contract-id">Waiting for active contract</div>
+</section>
+
+<section class="card wrong-history" id="wrong-predictions" aria-labelledby="wrong-heading">
+  <div class="panel-heading"><div><div class="label">Original calls · volatility-proxy-v1</div><h2 id="wrong-heading">Which predictions were wrong?</h2></div><span class="state-badge">Newest first</span></div>
+  <div class="wrong-summary"><div><div class="muted">Wrong predictions</div><div class="value" id="wrong-total">—</div><div class="muted" id="wrong-scored">Waiting for settled records</div></div><div><div class="muted">Most recent miss · market close</div><div id="wrong-latest">Waiting for history</div><div class="muted" id="wrong-latest-detail"></div></div></div>
+  <div class="wrong-number-block"><strong>Wrong market numbers</strong><p class="muted" id="wrong-number-context">Waiting for numbered results.</p><div id="wrong-market-numbers" aria-label="Wrong market numbers"></div><a class="mistakes-link" href="#live-forecast">Back to the live numbered forecast ↑</a></div>
+  <p class="muted" id="wrong-history-status" role="status">Reading the original predictions…</p>
+  <div class="scroll"><table><thead><tr><th scope="col">Market #</th><th scope="col">Market window · Pacific</th><th scope="col">First prediction</th><th scope="col">Official result</th><th scope="col">Target</th><th scope="col">Settlement</th><th scope="col">Settlement − target</th></tr></thead><tbody id="wrong-prediction-rows"></tbody></table></div>
+  <p id="wrong-empty" class="muted">Waiting for the recorded history.</p>
+  <button type="button" id="wrong-show-more" hidden>Show older misses</button>
+  <p class="muted">Market # counts BTC markets from this model’s first recorded call onward. Each market appears once; later updates never replace its first prediction. Settlement is the official BTC average. These are forecast misses, not records of bets or money lost.</p>
+</section>
+
+<section class="card"><h2>OpenAI review</h2><p id="review">Waiting for local API configuration.</p><div class="muted">Reviews use supplied evidence. They are scored separately and cannot place trades.</div></section>
+<section class="card"><h2>Model comparison</h2><div class="scroll"><table><thead><tr><th>Forecast source</th><th>Markets</th><th>Settled</th><th>Accuracy</th><th>Brier score ↓</th></tr></thead><tbody id="models"></tbody></table></div><p class="muted">One first forecast per market and source. A high hit rate alone does not establish profit. Brier measures probability error; lower is better.</p></section>
+<section class="card"><h2>Learning progress</h2><p id="learning">Collecting independent settled markets before training.</p><p class="muted">Original first forecasts remain in the record. Training still requires 200 distinct settled markets.</p></section>
+
+
+<section class="card"><h2>Recent predictions & official outcomes</h2><div class="scroll"><table><thead><tr><th>Recorded time</th><th>Contract</th><th>Source</th><th>YES probability</th><th>Outcome</th></tr></thead><tbody id="recent"></tbody></table></div></section>
+<footer>Forecasts refresh every 5 seconds; countdowns update every second. All times are Pacific. The upcoming window is provisional until its contract is captured. Coinbase prices differ from the CF Benchmarks settlement index. No proxy forecast is issued during the final averaging minute. Keep the recorder running to update predictions.</footer>
+</main><script>
+const el=id=>document.getElementById(id),pct=n=>n==null?'—':(n*100).toFixed(1)+'%',usd=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n);
+function row(target,values){const tr=document.createElement('tr');for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td)}target.append(tr)}
+
+(function (scope) {
+  'use strict';
+  const finite = value => typeof value === 'number' && Number.isFinite(value);
+
+  function buildForecastState(status, nowSeconds) {
+    if (!finite(nowSeconds) || nowSeconds < 0) throw new RangeError('Invalid current time');
+    const open = Math.floor(nowSeconds / 900) * 900;
+    const close = open + 900;
+    const current = {
+      status: 'pending', reason: 'Awaiting this cycle’s contract and fresh forecast',
+      open, close, seconds_remaining: close - nowSeconds, confirmed: false,
+      ticker: null, side: null, p_yes: null, p_no: null, target: null,
+      spot: null, yes_ask: null, no_ask: null, observed: null,
+      entry_signal: 'SKIP', paper_only: true,
+      outcome_definition: 'YES means the official settlement average meets or exceeds the contract target.'
+    };
+    const next = {
+      open: close, close: close + 900, status: 'pending', confirmed: false,
+      ticker: null, side: null, p_yes: null, p_no: null, forecast: null, target: null,
+      entry_signal: 'SKIP', paper_only: true,
+      reason: 'Next expected window; contract target and forecast are not available yet'
+    };
+    const state = { expectedWindow: { open, close }, current, next };
+    const fail = (kind, reason) => {
+      current.status = kind;
+      current.reason = reason;
+      return state;
+    };
+    const rows = status && Array.isArray(status.recent_predictions) ? status.recent_predictions : [];
+    // Select the newest active source before checking its inputs. Never recover a
+    // more favorable earlier probability when the newest active forecast is bad.
+    const active = rows.filter(row => row && row.source === 'volatility-proxy-v1' &&
+      row.detail && finite(row.detail.close_ts) && row.detail.close_ts === close);
+    active.sort((a, b) => {
+      const at = finite(a.observed) ? a.observed : Infinity;
+      const bt = finite(b.observed) ? b.observed : Infinity;
+      if (at !== bt) return bt - at;
+      return (finite(b.id) ? b.id : 0) - (finite(a.id) ? a.id : 0);
+    });
+    const row = active[0];
+    if (row && typeof row.ticker === 'string' && /^KXBTC15M-/.test(row.ticker)) {
+      current.ticker = row.ticker;
+      current.confirmed = true;
+    }
+    if (close - nowSeconds <= 60) return fail('final-minute', 'Final averaging minute; forecasts are unsupported');
+    if (!row) return state;
+    if (!current.confirmed) return fail('invalid', 'Missing or invalid BTC contract identifier');
+    if (!status || !finite(status.updated_at)) return fail('invalid', 'Missing report timestamp');
+    if (status.updated_at > nowSeconds) return fail('invalid', 'Report timestamp is in the future');
+    if (nowSeconds - status.updated_at > 45) return fail('stale', 'Report is more than 45 seconds old');
+    if (!finite(row.observed) || !finite(row.completed) || row.observed < open ||
+        row.observed >= close || row.completed < row.observed || row.completed >= close ||
+        row.completed > nowSeconds) return fail('invalid', 'Forecast timestamps do not match the current window');
+    if (nowSeconds - row.observed > 45) return fail('stale', 'Forecast is more than 45 seconds old');
+    const detail = row.detail;
+    if (row.close_ts !== undefined && (!finite(row.close_ts) || row.close_ts !== close))
+      return fail('invalid', 'Conflicting contract close timestamps');
+    if (!finite(row.p_yes) || row.p_yes < 0 || row.p_yes > 1 ||
+        (detail.p_yes !== undefined && (!finite(detail.p_yes) || Math.abs(detail.p_yes - row.p_yes) > 1e-9)))
+      return fail('invalid', 'Invalid or conflicting probability');
+    if (!finite(detail.yes_ask) || !finite(detail.no_ask) ||
+        detail.yes_ask <= 0 || detail.yes_ask >= 1 || detail.no_ask <= 0 || detail.no_ask >= 1 ||
+        detail.yes_ask + detail.no_ask < 1 - 1e-9)
+      return fail('invalid', 'Missing, invalid or crossed paired executable asks');
+    const spot = detail.spot;
+    if (!finite(detail.target) || detail.target <= 0 || !spot ||
+        !finite(spot.price) || spot.price <= 0 || !finite(spot.tick_ts) || !finite(spot.received) ||
+        spot.tick_ts > spot.received || spot.received > row.observed ||
+        row.observed - spot.tick_ts > 30 || spot.tick_ts > nowSeconds)
+      return fail('invalid', 'Invalid, stale or future spot/target evidence');
+    Object.assign(current, {
+      status: 'valid', reason: 'Experimental, unvalidated forecast; paper observation only',
+      side: row.p_yes >= 0.5 ? 'YES' : 'NO', p_yes: row.p_yes, p_no: 1 - row.p_yes,
+      target: detail.target, spot: spot.price, yes_ask: detail.yes_ask,
+      no_ask: detail.no_ask, observed: row.observed,
+      weak_direction: Math.abs(row.p_yes - 0.5) <= 0.1
+    });
+    return state;
+  }
+
+  if (typeof module !== 'undefined' && module.exports) module.exports = { buildForecastState };
+  if (scope) scope.buildForecastState = buildForecastState;
+})(typeof globalThis !== 'undefined' ? globalThis : this);
+
+const pacificTime = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit'});
+const pacificTimestamp = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+const pacificDate = new Intl.DateTimeFormat('en-US', {timeZone:'America/Los_Angeles',month:'short',day:'numeric'});
+const timeLabel = seconds => pacificTime.format(new Date(seconds*1000));
+const stampLabel = seconds => pacificTimestamp.format(new Date(seconds*1000));
+const windowLabel = (open, close) => timeLabel(open)+' – '+timeLabel(close)+' Pacific';
+const countdownLabel = seconds => {const n=Math.max(0,Math.ceil(seconds));return Math.floor(n/60)+':'+String(n%60).padStart(2,'0')};
+let latestStatus = null, statusUnavailable = false, updateInFlight = false;
+function renderForecast() {
+  const now=Date.now()/1000, state=buildForecastState(statusUnavailable?null:latestStatus,now), f=state.current;
+  const valid=f.status==='valid';
+  if (window.renderMarketNumber) window.renderMarketNumber(f,now);
+  el('live-clock').textContent=pacificDate.format(new Date(now*1000))+' · '+stampLabel(now);
+  el('current-label').textContent=f.confirmed?'This cycle · BTC':'This cycle · expected window';
+  el('current-heading').textContent=windowLabel(f.open,f.close);
+  el('next-heading').textContent=windowLabel(state.next.open,state.next.close);
+  el('close-countdown').textContent=countdownLabel(f.close-now);
+  el('next-countdown').textContent=countdownLabel(state.next.open-now);
+  const titles={'valid':'Fresh forecast','pending':'Waiting','stale':'Stale data','invalid':'Data unavailable','final-minute':'Final minute'};
+  el('forecast-state').textContent=statusUnavailable?'Connection lost':titles[f.status];
+  el('forecast-state').dataset.state=valid?'valid':f.status;
+  el('direction').textContent=valid?(f.side==='YES'?'UP / YES lean':'DOWN / NO lean'):(f.status==='final-minute'?'Awaiting settlement':f.status==='stale'?'Forecast expired':'Waiting for data');
+  el('direction').dataset.side=valid?f.side:'';
+  el('prob-yes').textContent=valid?pct(f.p_yes):'—';
+  el('prob-no').textContent=valid?pct(f.p_no):'—';
+  el('probability-fill').style.width=valid?(f.p_yes*100)+'%':'0%';
+  el('probability-fill').parentElement.dataset.empty=String(!valid);
+  el('forecast-time').textContent=valid?'Forecast '+stampLabel(f.observed)+' · '+Math.floor(now-f.observed)+'s old · '+(f.weak_direction?'Weak directional signal':'Uncalibrated estimate'):'No valid forecast for this cycle';
+  el('price').textContent=valid?usd(f.spot):'—';
+  el('target').textContent=valid?usd(f.target):'—';
+  el('paired-asks').textContent=valid?(f.yes_ask*100).toFixed(0)+'¢ / '+(f.no_ask*100).toFixed(0)+'¢':'— / —';
+  el('strategy-reason').textContent='Paper observation only. '+(statusUnavailable?'The local report could not be read.':valid?(f.weak_direction?'Weak signal; model has not passed independent validation.':'Model has not passed independent validation.'):f.reason+'.');
+  el('contract').textContent=f.ticker||'Contract not yet confirmed';
+  el('notice').textContent=statusUnavailable?'Connection to the local report was lost. Retrying every 5 seconds.':valid?'Fresh evidence · probabilities are experimental · quotes are paired with the forecast observation.':f.reason+'. Checking for fresh data every 5 seconds.';
+}
+async function update(){
+  if(updateInFlight)return;
+  updateInFlight=true;
+  try{
+    const response=await fetch('/status.json',{cache:'no-store',signal:AbortSignal.timeout(4500)});
+    if(!response.ok)throw Error('Status unavailable');
+    const s=await response.json();
+    if(!s||typeof s!=='object'||!Array.isArray(s.recent_predictions))throw Error('Malformed status');
+    latestStatus=s;statusUnavailable=false;renderForecast();
+    const preds=s.recent_predictions,e=s.forecast_evaluation||{},q=e['volatility-proxy-v1'];
+    el('count').textContent=q?.settled_markets??0;
+    el('accuracy').textContent=q?.accuracy==null?'Waiting for official settlement':q.correct+' correct · '+q.wrong+' wrong · Brier '+q.brier.toFixed(4);
+    const analyst=(s.recent_decisions||[]).find(x=>x.decision?.analyst)?.decision.analyst,review=preds.find(p=>p.source?.startsWith('openai:')||p.source?.startsWith('openai-abstention:'));
+    el('review').textContent=analyst?.review?.summary||review?.detail?.summary||analyst?.status||'Waiting for live evidence or local API configuration.';
+    el('models').replaceChildren();for(const [name,v] of Object.entries(e))row(el('models'),[name,v.markets_forecast,v.settled_markets,pct(v.accuracy),v.brier==null?'—':v.brier.toFixed(4)]);
+    const learning=s.learning;
+    el('learning').textContent=learning?learning.live_training_markets+' / '+learning.required_training_markets+' distinct settled live markets · '+learning.training_status+' · no proven predictive edge':'Waiting for the upgraded recorder report.';
+    // Detailed first-call misses refresh independently through /mistakes.json.
+    el('recent').replaceChildren();for(const p of preds)row(el('recent'),[stampLabel(p.observed),p.ticker,p.source,p.detail?.abstention?'Abstain':pct(p.p_yes),p.official_result||'Pending']);
+  }catch(error){statusUnavailable=true;renderForecast()}
+  finally{updateInFlight=false}
+}
+renderForecast();update();setInterval(update,5000);setInterval(renderForecast,1000);
+
+</script><script src="/mistakes-panel.js"></script><script src="/trading-panel.js"></script><!-- analytics-workspace:start --><script src="/analytics-workspace.js"></script><!-- analytics-workspace:end --><script src="/midpoint-panel.js"></script><script src="/remaining-panel.js"></script></body></html>
