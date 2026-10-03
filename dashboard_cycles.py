@@ -26,7 +26,8 @@ def _ts(s):
     return dt.datetime.fromisoformat(s.replace("Z", "+00:00")).timestamp()
 
 
-def build_cycles_report(db_path, now=None, quant_path=None):
+def build_cycles_report(db_path, now=None, quant_path=None, since=None):
+    """since: only windows that OPEN at or after this time count (a fresh 'cycle 0' run). History is never modified."""
     now = time.time() if now is None else now
     db = _ro(db_path)
     try:
@@ -38,12 +39,16 @@ def build_cycles_report(db_path, now=None, quant_path=None):
             except (KeyError, ValueError, TypeError):
                 continue
             markets[ticker] = dict(ticker=ticker, open=opened, close=close, result=result if result in ("yes", "no") else None)
-        first = {}
+        first, mid = {}, {}
         for ticker, observed, p in db.execute("SELECT ticker,observed,p_yes FROM predictions WHERE source=? ORDER BY observed,id", (SOURCE,)):
             first.setdefault(ticker, (observed, p))
+        for ticker, observed, p in db.execute("SELECT ticker,observed,p_yes FROM predictions WHERE source='market-mid-v1' ORDER BY observed,id"):
+            mid.setdefault(ticker, p)
     finally:
         db.close()
 
+    if since is not None:
+        markets = {t: m for t, m in markets.items() if m["open"] >= since}
     entries = {}
     if quant_path and Path(quant_path).exists():
         try:
@@ -101,5 +106,18 @@ def build_cycles_report(db_path, now=None, quant_path=None):
         h["brier"] = h["brier"] / h["n"] if h["n"] else None
         h["paper_pnl"] = round(h["paper_pnl"], 4)
     counts = {s: sum(t["state"] == s for t in tiles) for s in ("correct", "wrong", "pending", "skipped")}
+    run = None
+    if since is not None:
+        n = c = 0; b = bm = ll = llm = 0.0; nm = 0
+        for t, m in markets.items():
+            if m["result"] is None or t not in first:
+                continue
+            p = first[t][1]; y = m["result"] == "yes"; n += 1; c += (p >= 0.5) == y; b += (p - y) ** 2
+            ll -= math.log(max(1e-12, p if y else 1 - p))
+            if t in mid:
+                q = mid[t]; nm += 1; bm += (q - y) ** 2; llm -= math.log(max(1e-12, q if y else 1 - q))
+        run = dict(since=since, cycle=max(0, int((now - since) // WINDOW)), settled=n, correct=c,
+                   accuracy=c / n if n else None, brier=b / n if n else None, log_loss=ll / n if n else None,
+                   market_brier=bm / nm if nm else None, market_log_loss=llm / nm if nm else None, market_n=nm)
     return dict(source=SOURCE, generated_at=now, current=current, last_24h=tiles, last_24h_counts=counts,
-                by_hour=[hours[h] for h in range(24)], timezone="America/Los_Angeles (computed)")
+                by_hour=[hours[h] for h in range(24)], run=run, timezone="America/Los_Angeles (computed)")

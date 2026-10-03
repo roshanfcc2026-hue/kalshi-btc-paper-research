@@ -43,6 +43,14 @@ class CycleTests(unittest.TestCase):
             self.assertEqual(sum(x['n'] for x in r['by_hour']), 3)  # A, B, OLD settled with first calls
             json.dumps(r, allow_nan=False)
 
+    def test_fresh_run_counts_only_windows_since_start(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.make(d)
+            r = build_cycles_report(os.path.join(d, 'research.sqlite'), NOW, since=NOW - 420 - 1800)  # from window B
+            self.assertEqual({t['ticker'] for t in r['last_24h']}, {'KXBTC15M-A', 'KXBTC15M-B'})
+            self.assertEqual((r['run']['settled'], r['run']['correct'], r['run']['cycle']), (2, 1, 2))
+            self.assertIsNone(build_cycles_report(os.path.join(d, 'research.sqlite'), NOW)['run'])
+
     def test_does_not_modify_database(self):
         with tempfile.TemporaryDirectory() as d:
             self.make(d); p = os.path.join(d, 'research.sqlite'); before = os.path.getmtime(p)
