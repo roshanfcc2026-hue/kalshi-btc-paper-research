@@ -30,3 +30,6 @@
 !test_paper_decision.py
 !test_share_package.py
 !test_dashboard_ui.js
+!quant/
+!quant/*.py
+!test_quant_*.py
