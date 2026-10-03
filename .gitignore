@@ -41,3 +41,6 @@
 !quant/*.html
 !futuristic-theme.css
 !stats-panel.js
+!dashboard_cycles.py
+!cycles-panel.js
+!test_dashboard_cycles.py

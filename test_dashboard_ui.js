@@ -71,3 +71,20 @@ test('stats deck computes skill vs market, Wilson range and ranks sources', () =
   const [lo, hi] = wilson(60, 100); assert.ok(lo > .49 && lo < .51 && hi > .69 && hi < .70);
   assert.equal(computeStats({}).rows.length, 0);
 });
+
+test('cycle timeline aligns to 15-minute windows and marks locks and final minute', () => {
+  const {windowFor, marks} = require('./cycles-panel.js');
+  assert.deepEqual(windowFor(1800 + 125), {open: 1800, close: 2700});
+  const m = marks({open: 900, close: 1800, first_call_ts: 930}, null);
+  assert.deepEqual(m.map(x => x.at), [1380, 1560, 1740, 930]);
+  assert.equal(marks(null, {open: 0, close: 900}).length, 3);
+});
+
+test('prediction and entry readouts', () => {
+  const {callText, entryText} = require('./cycles-panel.js');
+  assert.equal(callText({first_call_p: .62}).dir, 'UP / YES 62%');
+  assert.equal(callText({first_call_p: .3}).dir, 'DOWN / NO 70%');
+  assert.equal(entryText({action: 'yes', contracts: 3, avg_price: .47, fee: .06, p_yes: .64}).dir, 'BUY YES ×3 @ 47¢');
+  assert.equal(entryText({action: 'skip', reason: 'max open risk'}).detail, 'max open risk');
+  assert.equal(entryText(null).dir, 'NO PAPER ENTRY');
+});

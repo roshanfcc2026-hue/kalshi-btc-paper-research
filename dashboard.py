@@ -6,6 +6,7 @@ import sqlite3
 
 from dashboard_mistakes import build_mistake_report
 from dashboard_trading import build_trading_report
+from dashboard_cycles import build_cycles_report
 
 ROOT=Path(__file__).resolve().parent
 
@@ -26,6 +27,12 @@ class Handler(BaseHTTPRequestHandler):
             except (sqlite3.Error, OSError, ValueError):
                 self.send_error(503,'Quant pipeline not running'); return
             content_type='application/json'
+        elif path=='/cycles.json':
+            try:
+                data=json.dumps(build_cycles_report(ROOT/'research.sqlite',quant_path=ROOT/'quant.sqlite'),allow_nan=False).encode('utf-8')
+            except (sqlite3.Error, OSError, ValueError):
+                self.send_error(503,'Cycle report temporarily unavailable'); return
+            content_type='application/json'
         elif path in ('/mistakes.json','/paper-signals.json'):
             try:
                 builder=build_mistake_report if path=='/mistakes.json' else build_trading_report
@@ -44,7 +51,8 @@ class Handler(BaseHTTPRequestHandler):
                    '/mistakes-panel.js':('mistakes-panel.js','text/javascript; charset=utf-8'),
                    '/trading-panel.js':('trading-panel.js','text/javascript; charset=utf-8'),
                    '/futuristic-theme.css':('futuristic-theme.css','text/css; charset=utf-8'),
-                   '/stats-panel.js':('stats-panel.js','text/javascript; charset=utf-8')}.get(path)
+                   '/stats-panel.js':('stats-panel.js','text/javascript; charset=utf-8'),
+                   '/cycles-panel.js':('cycles-panel.js','text/javascript; charset=utf-8')}.get(path)
             if not route: self.send_error(404); return
             try: data=(ROOT/route[0]).read_bytes()
             except FileNotFoundError: self.send_error(503,'Run the collector first'); return
