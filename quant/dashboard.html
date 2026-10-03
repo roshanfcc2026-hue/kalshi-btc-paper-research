@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Paper Pipeline</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--ink2:#55554f;--muted:#8a8a83;--line:#e3e3de;--series:#2f6fb0;
+--good:#2e7d4f;--warn:#a56a00;--bad:#b3261e;--banner:#eef3f9}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--ink:#ecebe6;--ink2:#b5b4ad;--muted:#85847d;--line:#33332f;
+--series:#78a9de;--good:#6cc08e;--warn:#e0a640;--bad:#f08a80;--banner:#1c2633}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;margin:0 0 8px;color:var(--ink2);font-weight:600}
+.banner{background:var(--banner);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0 16px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px;overflow-x:auto}
+.tile .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}.tile .k{color:var(--muted);font-size:12px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:12px}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.note{color:var(--muted);font-size:12px}
+svg text{fill:var(--muted);font-size:11px}#tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;display:none}
+</style></head>
+<body><main>
+<h1>Kalshi BTC 15-min &mdash; paper pipeline</h1>
+<div class="banner"><strong>PAPER ONLY.</strong> No real orders are sent. Results are simulated and do not imply profitability.
+<div id="status"></div></div>
+<div class="grid" id="tiles"></div>
+<div class="card"><h2>Paper equity (settled trades)</h2><svg id="eq" width="100%" height="180" role="img" aria-label="Paper equity over time"></svg>
+<div class="note" id="eqnote"></div></div>
+<div class="card"><h2>Data feeds (latest proxy inputs)</h2><table id="feeds"></table></div>
+<div class="card"><h2>Forecast quality vs market midpoint (first calls; negative = better than market)</h2><table id="sources"></table></div>
+<div class="card"><h2>Recent paper trades</h2><table id="trades"></table></div>
+<div class="card"><h2>Recent decisions (incl. skips)</h2><table id="decisions"></table></div>
+<div class="card"><h2>Passive orders &mdash; research only</h2><div id="passive"></div></div>
+<div class="card"><h2>Alerts</h2><table id="alerts"></table></div>
+<div id="tip"></div>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const t=ts=>ts?new Date(ts*1000).toLocaleTimeString():'';
+const f=(v,d=2)=>v==null?'—':Number(v).toFixed(d);
+function cell(tr,text,cls){const td=document.createElement('td');td.textContent=text;if(cls)td.className=cls;tr.appendChild(td)}
+function table(el,head,rows){el.replaceChildren();const h=document.createElement('tr');head.forEach(x=>{const th=document.createElement('th');th.textContent=x;h.appendChild(th)});el.appendChild(h);
+ if(!rows.length){const tr=document.createElement('tr');cell(tr,'none yet','note');el.appendChild(tr)}
+ rows.forEach(r=>{const tr=document.createElement('tr');r.forEach(c=>Array.isArray(c)?cell(tr,c[0],c[1]):cell(tr,c));el.appendChild(tr)})}
+function tile(k,v,cls){const d=document.createElement('div');d.className='card tile';const a=document.createElement('div');a.className='v '+(cls||'');a.textContent=v;
+ const b=document.createElement('div');b.className='k';b.textContent=k;d.append(a,b);return d}
+function chart(pts){const svg=$('eq');svg.replaceChildren();const W=svg.clientWidth||600,H=180,P=36;
+ const data=pts.map((p,i)=>({i,ts:p[0],v:p[1]}));if(data.length<2){$('eqnote').textContent='No settled paper trades yet.';return}
+ $('eqnote').textContent='';const vs=data.map(d=>d.v),lo=Math.min(...vs),hi=Math.max(...vs),span=(hi-lo)||1;
+ const x=i=>P+i*(W-P-8)/(data.length-1),y=v=>H-20-(v-lo)/span*(H-36);const ns='http://www.w3.org/2000/svg';
+ for(const v of [lo,hi]){const g=document.createElementNS(ns,'text');g.setAttribute('x',0);g.setAttribute('y',y(v)+4);g.textContent='$'+v.toFixed(0);svg.appendChild(g)}
+ const path=document.createElementNS(ns,'path');path.setAttribute('d',data.map((d,i)=>(i?'L':'M')+x(i)+','+y(d.v)).join(''));
+ path.setAttribute('fill','none');path.setAttribute('stroke','var(--series)');path.setAttribute('stroke-width','2');svg.appendChild(path);
+ const dot=document.createElementNS(ns,'circle');dot.setAttribute('r',4);dot.setAttribute('fill','var(--series)');dot.style.display='none';svg.appendChild(dot);
+ svg.onmousemove=e=>{const r=svg.getBoundingClientRect();const i=Math.max(0,Math.min(data.length-1,Math.round((e.clientX-r.left-P)/((W-P-8)/(data.length-1)))));
+  const d=data[i];dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(d.v));dot.style.display='';const tip=$('tip');tip.style.display='block';
+  tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px';tip.textContent=(d.ts?t(d.ts)+'  ':'start  ')+'$'+d.v.toFixed(2)};
+ svg.onmouseleave=()=>{dot.style.display='none';$('tip').style.display='none'}}
+async function load(){let s;try{s=await (await fetch('/api/state')).json()}catch(e){$('status').textContent='Dashboard server not reachable.';return}
+ if(s.error){$('status').textContent=s.error;return}
+ const st=s.trading_status,cls=st.startsWith('HALTED')?'bad':st.startsWith('WAITING')?'warn':'good';
+ $('status').replaceChildren();const sp=document.createElement('span');sp.className=cls;sp.textContent='Status: '+st;$('status').appendChild(sp);
+ const hb=s.heartbeat_age;$('tiles').replaceChildren(
+  tile('Paper bankroll','$'+f(s.bankroll)),tile('Paper P&L (after fees)',(s.pnl_total>=0?'+$':'-$')+f(Math.abs(s.pnl_total)),s.pnl_total>=0?'good':'bad'),
+  tile('Max drawdown',f(s.max_drawdown*100,1)+'%'),tile('Open risk / positions','$'+f(s.open_risk)+' / '+s.open_positions),
+  tile('Spot proxy',s.proxy&&s.proxy.price?'$'+f(s.proxy.price,0)+' ('+s.proxy.n_used+'/'+s.proxy.n_total+')':'unavailable',s.proxy&&s.proxy.price?'':'bad'),
+  tile('Collector heartbeat',hb==null?'never':Math.round(hb)+'s ago',hb==null||hb>120?'bad':hb>45?'warn':'good'));
+ chart(s.equity);
+ table($('feeds'),['Exchange','Status','Price','Age (s)'],s.feeds.map(x=>[x.exchange,[x.status,x.status==='ok'?'good':'bad'],f(x.price),f(x.age_s,1)]));
+ table($('sources'),['Source','Markets','Log loss','Market log loss','Difference'],Object.entries(s.sources).map(([k,v])=>[k,v.markets,f(v.log_loss,4),f(v.market_log_loss,4),[f(v.vs_market,4),v.vs_market<0?'good':'']]));
+ table($('trades'),['Opened','Market','Side','Qty','Cost','Fee','Result','P&L'],s.trades.map(x=>[t(x.opened),x.ticker,x.side,x.contracts,f(x.cost),f(x.fee),x.result||'open',x.pnl==null?'—':[f(x.pnl),x.pnl>=0?'good':'bad']]));
+ table($('decisions'),['Time','Market','Source','P(yes)','Action','Reason'],s.decisions.map(x=>[t(x.ts),x.ticker,x.source,f(x.p_yes,3),x.action,x.reason||'']));
+ const p=s.passive_research;$('passive').textContent='Resolved '+p.resolved+', filled '+p.filled+' (fill rate '+(p.fill_rate==null?'—':f(p.fill_rate*100,0)+'%')+'), P&L $'+f(p.pnl)+'. '+p.warning+': queue position unknown.';
+ table($('alerts'),['Time','Kind','Detail'],s.alerts.map(x=>[t(x.ts),[x.kind,'warn'],x.detail]))}
+load();setInterval(load,5000);
+</script></body></html>

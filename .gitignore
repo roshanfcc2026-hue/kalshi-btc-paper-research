@@ -38,3 +38,4 @@
 !quant/registry/
 !quant/registry/*.json
 !QUANT_PIPELINE.md
+!quant/*.html

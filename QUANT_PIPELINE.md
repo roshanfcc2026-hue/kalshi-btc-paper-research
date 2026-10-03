@@ -19,6 +19,7 @@ py -3 -m unittest discover -s . -p "test_*.py"
 py -3 -X utf8 bot.py monitor --cycles 0               # existing recorder: official results
 py -3 -m quant.collector --cycles 0 --interval 5      # data + forecasts + paper decisions
 py -3 -m quant.monitor                                # heartbeat watchdog
+py -3 -m quant.dashboard                              # http://127.0.0.1:8766 (read-only)
 ```
 ## Research steps
 ```powershell
