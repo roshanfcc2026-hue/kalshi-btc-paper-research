@@ -1,75 +1,233 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Paper Pipeline</title>
+<title>BTC15 Paper Desk</title>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-:root{--bg:#f7f7f5;--card:#fff;--ink:#1d1d1b;--ink2:#55554f;--muted:#8a8a83;--line:#e3e3de;--series:#2f6fb0;
---good:#2e7d4f;--warn:#a56a00;--bad:#b3261e;--banner:#eef3f9}
-@media (prefers-color-scheme:dark){:root{--bg:#141413;--card:#1e1e1c;--ink:#ecebe6;--ink2:#b5b4ad;--muted:#85847d;--line:#33332f;
---series:#78a9de;--good:#6cc08e;--warn:#e0a640;--bad:#f08a80;--banner:#1c2633}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
-main{max-width:1100px;margin:0 auto;padding:16px}
-h1{font-size:20px;margin:0 0 4px}h2{font-size:14px;margin:0 0 8px;color:var(--ink2);font-weight:600}
-.banner{background:var(--banner);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:10px 0 16px}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
-.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px;overflow-x:auto}
-.tile .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}.tile .k{color:var(--muted);font-size:12px}
-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:5px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--muted);font-weight:500;font-size:12px}
-.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.note{color:var(--muted);font-size:12px}
-svg text{fill:var(--muted);font-size:11px}#tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:12px;display:none}
-</style></head>
-<body><main>
-<h1>Kalshi BTC 15-min &mdash; paper pipeline</h1>
-<div class="banner"><strong>PAPER ONLY.</strong> No real orders are sent. Results are simulated and do not imply profitability.
-<div id="status"></div></div>
-<div class="grid" id="tiles"></div>
-<div class="card"><h2>Paper equity (settled trades)</h2><svg id="eq" width="100%" height="180" role="img" aria-label="Paper equity over time"></svg>
-<div class="note" id="eqnote"></div></div>
-<div class="card"><h2>Data feeds (latest proxy inputs)</h2><table id="feeds"></table></div>
-<div class="card"><h2>Forecast quality vs market midpoint (first calls; negative = better than market)</h2><table id="sources"></table></div>
-<div class="card"><h2>Recent paper trades</h2><table id="trades"></table></div>
-<div class="card"><h2>Recent decisions (incl. skips)</h2><table id="decisions"></table></div>
-<div class="card"><h2>Passive orders &mdash; research only</h2><div id="passive"></div></div>
-<div class="card"><h2>Alerts</h2><table id="alerts"></table></div>
-<div id="tip"></div>
-</main>
+/* Layout: HUD header -> status strip -> KPI instruments -> [equity | model core] -> model internals -> feeds/ledger. Single committed dark look. */
+:root{
+  --void:#060a12; --panel:#0b1220; --panel2:#0f1829; --grid:#1a2740; --line:#24365a;
+  --ink:#dfe8f7; --ink2:#9fb0cc; --dim:#62728f;
+  --cyan:#43d4ff; --cyanSoft:rgba(67,212,255,.14); --glow:0 0 18px rgba(67,212,255,.25);
+  --good:#3ee39a; --warn:#ffc04d; --bad:#ff6b7a;
+  --display:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--void);color:var(--ink)}
+body{font:14px/1.5 var(--body);background:
+  radial-gradient(1200px 500px at 70% -10%,rgba(67,212,255,.08),transparent 60%),
+  linear-gradient(var(--void),var(--void));min-height:100%}
+.wrap{max-width:1200px;margin:0 auto;padding-inline:16px;padding-block:18px 40px;display:grid;gap:14px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header.hud{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand h1{font:700 22px/1 var(--display);letter-spacing:.06em;margin:0;text-transform:uppercase;text-wrap:balance}
+.brand h1 b{color:var(--cyan);text-shadow:var(--glow)}
+.brand span{font:500 11px var(--mono);color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:600 11px var(--display);letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border:1px solid var(--line);border-radius:999px;color:var(--ink2);display:inline-flex;gap:7px;align-items:center;background:var(--panel)}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;display:inline-block}
+.chip.good{color:var(--good);border-color:rgba(62,227,154,.4)}.chip.warn{color:var(--warn);border-color:rgba(255,192,77,.4)}.chip.bad{color:var(--bad);border-color:rgba(255,107,122,.45)}
+.chip.paper{color:var(--cyan);border-color:rgba(67,212,255,.45)}
+.demo{display:none;font:500 12px var(--mono);color:var(--warn);border:1px dashed rgba(255,192,77,.5);padding:8px 12px;border-radius:6px;background:rgba(255,192,77,.06)}
+.demo.on{display:block}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.kpi{position:relative;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);padding:12px 14px;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%)}
+.kpi::before{content:"";position:absolute;left:0;top:0;width:28px;height:2px;background:var(--cyan);box-shadow:var(--glow)}
+.kpi .k{font:600 10.5px var(--display);color:var(--dim);letter-spacing:.16em;text-transform:uppercase}
+.kpi .v{font:500 22px var(--mono);margin-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi .s{font:400 11.5px var(--mono);color:var(--ink2)}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.cy{color:var(--cyan)}.dim{color:var(--dim)}
+.row{display:grid;grid-template-columns:1.35fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:860px){.row,.row3{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);padding:14px;min-width:0;position:relative}
+.panel h2{font:600 12px var(--display);letter-spacing:.18em;text-transform:uppercase;margin:0 0 10px;color:var(--ink2);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.panel h2 small{font:400 11px var(--mono);letter-spacing:0;text-transform:none;color:var(--dim)}
+.corner::after{content:"";position:absolute;right:-1px;bottom:-1px;width:14px;height:14px;border-right:2px solid var(--cyan);border-bottom:2px solid var(--cyan)}
+svg{display:block;width:100%;height:auto}
+svg text{fill:var(--dim);font:10.5px var(--mono)}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font:12.5px var(--mono);font-variant-numeric:tabular-nums}
+th{font:600 10.5px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--grid);white-space:nowrap;color:var(--ink)}
+tr:hover td{background:rgba(67,212,255,.04)}
+.sig{display:grid;gap:8px}
+.sigrow{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:8px 10px;border:1px solid var(--grid);background:var(--panel2)}
+.sigrow .n{font:600 12px var(--display);letter-spacing:.08em;text-transform:uppercase}
+.sigrow .r{font-size:12.5px;color:var(--ink2);min-width:0}
+.tag{font:600 10px var(--display);letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.note{font:400 11.5px var(--mono);color:var(--dim)}
+#tip{position:fixed;pointer-events:none;z-index:9;background:var(--panel2);border:1px solid var(--cyan);box-shadow:var(--glow);padding:5px 9px;font:12px var(--mono);color:var(--ink)}
+.scan{position:absolute;inset:0;pointer-events:none;background:linear-gradient(transparent 0,rgba(67,212,255,.05) 50%,transparent 100%);height:40%;animation:scan 6s linear infinite}
+@keyframes scan{from{transform:translateY(-40%)}to{transform:translateY(250%)}}
+@media (prefers-reduced-motion:reduce){.scan{animation:none;display:none}}
+a:focus-visible,svg:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+</style>
+
+<div class="wrap">
+  <header class="hud">
+    <div class="brand"><h1>BTC<b>15</b> Paper Desk</h1><span>Kalshi KXBTC15M · research pipeline</span></div>
+    <div class="chips" id="chips"></div>
+  </header>
+  <div class="demo" id="demo">DEMO DATA. Not connected to a live database. Every number on this page is a made-up example to show the layout.</div>
+
+  <section class="kpis" id="kpis" aria-label="Key figures"></section>
+
+  <div class="row">
+    <section class="panel corner"><div class="scan"></div>
+      <h2>Paper equity <small id="eqsub"></small></h2>
+      <svg id="eq" viewBox="0 0 640 230" role="img" aria-label="Paper equity curve" tabindex="0"></svg>
+    </section>
+    <section class="panel corner">
+      <h2>Calibration <small>combo-v1 · predicted vs observed</small></h2>
+      <svg id="cal" viewBox="0 0 320 230" role="img" aria-label="Reliability diagram"></svg>
+      <div class="note" id="calnote"></div>
+    </section>
+  </div>
+
+  <div class="row3">
+    <section class="panel corner">
+      <h2>Model core · combo-v1 <small id="combosub"></small></h2>
+      <svg id="coef" viewBox="0 0 420 140" role="img" aria-label="Coefficients with 95% bootstrap intervals"></svg>
+      <div class="note">Bars are 95% bootstrap intervals; dots are estimates. Signals whose interval crossed zero were dropped.</div>
+    </section>
+    <section class="panel corner">
+      <h2>Signal stack <small id="sigsub"></small></h2>
+      <div class="sig" id="signals"></div>
+    </section>
+  </div>
+
+  <div class="row3">
+    <section class="panel"><h2>Forecast quality <small>first calls · log loss, lower is better</small></h2><div class="scroll"><table id="sources"></table></div></section>
+    <section class="panel"><h2>Exchange feeds <small id="proxysub"></small></h2><div class="scroll"><table id="feeds"></table></div></section>
+  </div>
+
+  <section class="panel"><h2>Paper ledger <small>after fees</small></h2><div class="scroll"><table id="trades"></table></div></section>
+  <div class="row3">
+    <section class="panel"><h2>Decision log <small>including skips</small></h2><div class="scroll"><table id="decisions"></table></div></section>
+    <section class="panel"><h2>Alerts &amp; passive research</h2><div class="note" id="passive"></div><div class="scroll"><table id="alerts"></table></div></section>
+  </div>
+  <div class="note">PAPER ONLY. No real orders are sent. Simulated results do not imply profitability.</div>
+</div>
+<div id="tip" hidden></div>
+
 <script>
-const $=id=>document.getElementById(id);
-const t=ts=>ts?new Date(ts*1000).toLocaleTimeString():'';
-const f=(v,d=2)=>v==null?'—':Number(v).toFixed(d);
-function cell(tr,text,cls){const td=document.createElement('td');td.textContent=text;if(cls)td.className=cls;tr.appendChild(td)}
-function table(el,head,rows){el.replaceChildren();const h=document.createElement('tr');head.forEach(x=>{const th=document.createElement('th');th.textContent=x;h.appendChild(th)});el.appendChild(h);
- if(!rows.length){const tr=document.createElement('tr');cell(tr,'none yet','note');el.appendChild(tr)}
- rows.forEach(r=>{const tr=document.createElement('tr');r.forEach(c=>Array.isArray(c)?cell(tr,c[0],c[1]):cell(tr,c));el.appendChild(tr)})}
-function tile(k,v,cls){const d=document.createElement('div');d.className='card tile';const a=document.createElement('div');a.className='v '+(cls||'');a.textContent=v;
- const b=document.createElement('div');b.className='k';b.textContent=k;d.append(a,b);return d}
-function chart(pts){const svg=$('eq');svg.replaceChildren();const W=svg.clientWidth||600,H=180,P=36;
- const data=pts.map((p,i)=>({i,ts:p[0],v:p[1]}));if(data.length<2){$('eqnote').textContent='No settled paper trades yet.';return}
- $('eqnote').textContent='';const vs=data.map(d=>d.v),lo=Math.min(...vs),hi=Math.max(...vs),span=(hi-lo)||1;
- const x=i=>P+i*(W-P-8)/(data.length-1),y=v=>H-20-(v-lo)/span*(H-36);const ns='http://www.w3.org/2000/svg';
- for(const v of [lo,hi]){const g=document.createElementNS(ns,'text');g.setAttribute('x',0);g.setAttribute('y',y(v)+4);g.textContent='$'+v.toFixed(0);svg.appendChild(g)}
- const path=document.createElementNS(ns,'path');path.setAttribute('d',data.map((d,i)=>(i?'L':'M')+x(i)+','+y(d.v)).join(''));
- path.setAttribute('fill','none');path.setAttribute('stroke','var(--series)');path.setAttribute('stroke-width','2');svg.appendChild(path);
- const dot=document.createElementNS(ns,'circle');dot.setAttribute('r',4);dot.setAttribute('fill','var(--series)');dot.style.display='none';svg.appendChild(dot);
- svg.onmousemove=e=>{const r=svg.getBoundingClientRect();const i=Math.max(0,Math.min(data.length-1,Math.round((e.clientX-r.left-P)/((W-P-8)/(data.length-1)))));
-  const d=data[i];dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(d.v));dot.style.display='';const tip=$('tip');tip.style.display='block';
-  tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px';tip.textContent=(d.ts?t(d.ts)+'  ':'start  ')+'$'+d.v.toFixed(2)};
- svg.onmouseleave=()=>{dot.style.display='none';$('tip').style.display='none'}}
-async function load(){let s;try{s=await (await fetch('/api/state')).json()}catch(e){$('status').textContent='Dashboard server not reachable.';return}
- if(s.error){$('status').textContent=s.error;return}
- const st=s.trading_status,cls=st.startsWith('HALTED')?'bad':st.startsWith('WAITING')?'warn':'good';
- $('status').replaceChildren();const sp=document.createElement('span');sp.className=cls;sp.textContent='Status: '+st;$('status').appendChild(sp);
- const hb=s.heartbeat_age;$('tiles').replaceChildren(
-  tile('Paper bankroll','$'+f(s.bankroll)),tile('Paper P&L (after fees)',(s.pnl_total>=0?'+$':'-$')+f(Math.abs(s.pnl_total)),s.pnl_total>=0?'good':'bad'),
-  tile('Max drawdown',f(s.max_drawdown*100,1)+'%'),tile('Open risk / positions','$'+f(s.open_risk)+' / '+s.open_positions),
-  tile('Spot proxy',s.proxy&&s.proxy.price?'$'+f(s.proxy.price,0)+' ('+s.proxy.n_used+'/'+s.proxy.n_total+')':'unavailable',s.proxy&&s.proxy.price?'':'bad'),
-  tile('Collector heartbeat',hb==null?'never':Math.round(hb)+'s ago',hb==null||hb>120?'bad':hb>45?'warn':'good'));
- chart(s.equity);
- table($('feeds'),['Exchange','Status','Price','Age (s)'],s.feeds.map(x=>[x.exchange,[x.status,x.status==='ok'?'good':'bad'],f(x.price),f(x.age_s,1)]));
- table($('sources'),['Source','Markets','Log loss','Market log loss','Difference'],Object.entries(s.sources).map(([k,v])=>[k,v.markets,f(v.log_loss,4),f(v.market_log_loss,4),[f(v.vs_market,4),v.vs_market<0?'good':'']]));
- table($('trades'),['Opened','Market','Side','Qty','Cost','Fee','Result','P&L'],s.trades.map(x=>[t(x.opened),x.ticker,x.side,x.contracts,f(x.cost),f(x.fee),x.result||'open',x.pnl==null?'—':[f(x.pnl),x.pnl>=0?'good':'bad']]));
- table($('decisions'),['Time','Market','Source','P(yes)','Action','Reason'],s.decisions.map(x=>[t(x.ts),x.ticker,x.source,f(x.p_yes,3),x.action,x.reason||'']));
- const p=s.passive_research;$('passive').textContent='Resolved '+p.resolved+', filled '+p.filled+' (fill rate '+(p.fill_rate==null?'—':f(p.fill_rate*100,0)+'%')+'), P&L $'+f(p.pnl)+'. '+p.warning+': queue position unknown.';
- table($('alerts'),['Time','Kind','Detail'],s.alerts.map(x=>[t(x.ts),[x.kind,'warn'],x.detail]))}
+const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
+const f=(v,d=2)=>v==null||isNaN(v)?'—':Number(v).toFixed(d);
+const money=v=>v==null?'—':(v<0?'-$':'$')+Math.abs(v).toFixed(2);
+const tm=ts=>ts?new Date(ts*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
+function el(tag,attrs={},text){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(text!=null)e.textContent=text;return e}
+function td(tr,t,c){const x=document.createElement('td');x.textContent=t;if(c)x.className=c;tr.appendChild(x)}
+function table(t,head,rows){t.replaceChildren();const h=document.createElement('tr');head.forEach(x=>{const th=document.createElement('th');th.textContent=x;h.appendChild(th)});t.appendChild(h);
+  if(!rows.length){const tr=document.createElement('tr');td(tr,'nothing yet','dim');t.appendChild(tr)}
+  rows.forEach(r=>{const tr=document.createElement('tr');r.forEach(c=>Array.isArray(c)?td(tr,c[0],c[1]):td(tr,c));t.appendChild(tr)})}
+function chip(text,cls){const s=document.createElement('span');s.className='chip '+cls;const i=document.createElement('i');s.append(i,document.createTextNode(text));return s}
+function kpi(k,v,s,cls){const d=document.createElement('div');d.className='kpi';const a=document.createElement('div');a.className='k';a.textContent=k;
+  const b=document.createElement('div');b.className='v '+(cls||'');b.textContent=v;const c=document.createElement('div');c.className='s';c.textContent=s||'';d.append(a,b,c);return d}
+const tip=$('tip');function showTip(e,text){tip.hidden=false;tip.textContent=text;tip.style.left=Math.min(e.clientX+14,innerWidth-200)+'px';tip.style.top=(e.clientY+14)+'px'}
+
+function equity(curve){const svg=$('eq');svg.replaceChildren();const W=640,H=230,L=52,R=12,T=14,B=26;
+  const d=curve.map((p,i)=>({i,ts:p[0],v:p[1]}));if(d.length<2){svg.append(el('text',{x:L,y:H/2},'No settled paper trades yet'));return}
+  const vs=d.map(p=>p.v);let lo=Math.min(...vs),hi=Math.max(...vs);const pad=(hi-lo)*.15||1;lo-=pad;hi+=pad;
+  const x=i=>L+i*(W-L-R)/(d.length-1),y=v=>T+(hi-v)/(hi-lo)*(H-T-B);
+  for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4;svg.append(el('line',{x1:L,x2:W-R,y1:y(v),y2:y(v),stroke:'var(--grid)','stroke-width':1}));svg.append(el('text',{x:L-6,y:y(v)+3,'text-anchor':'end'},'$'+v.toFixed(0)))}
+  const base=d[0].v;svg.append(el('line',{x1:L,x2:W-R,y1:y(base),y2:y(base),stroke:'var(--line)','stroke-dasharray':'3 4'}));
+  const defs=el('defs');const g=el('linearGradient',{id:'eqg',x1:0,x2:0,y1:0,y2:1});g.append(el('stop',{offset:'0','stop-color':'#43d4ff','stop-opacity':.32}),el('stop',{offset:'1','stop-color':'#43d4ff','stop-opacity':0}));defs.append(g);svg.append(defs);
+  const line=d.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+','+y(p.v).toFixed(1)).join('');
+  svg.append(el('path',{d:line+`L${x(d.length-1)},${H-B}L${x(0)},${H-B}Z`,fill:'url(#eqg)'}));
+  svg.append(el('path',{d:line,fill:'none',stroke:'var(--cyan)','stroke-width':2,style:'filter:drop-shadow(0 0 4px rgba(67,212,255,.6))'}));
+  const last=d[d.length-1];svg.append(el('circle',{cx:x(last.i),cy:y(last.v),r:4.5,fill:'var(--cyan)'}));
+  const cross=el('line',{y1:T,y2:H-B,stroke:'var(--cyan)','stroke-opacity':.5,visibility:'hidden'}),dot=el('circle',{r:5,fill:'var(--void)',stroke:'var(--cyan)','stroke-width':2,visibility:'hidden'});svg.append(cross,dot);
+  svg.onpointermove=e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W;const i=Math.max(0,Math.min(d.length-1,Math.round((px-L)/((W-L-R)/(d.length-1)))));const p=d[i];
+    cross.setAttribute('x1',x(i));cross.setAttribute('x2',x(i));cross.setAttribute('visibility','visible');dot.setAttribute('cx',x(i));dot.setAttribute('cy',y(p.v));dot.setAttribute('visibility','visible');
+    showTip(e,(p.ts?tm(p.ts)+' · ':'start · ')+'$'+p.v.toFixed(2)+' ('+(p.v-base>=0?'+':'')+(p.v-base).toFixed(2)+')')};
+  svg.onpointerleave=()=>{cross.setAttribute('visibility','hidden');dot.setAttribute('visibility','hidden');tip.hidden=true}}
+
+function calibration(rel){const svg=$('cal');svg.replaceChildren();const W=320,H=230,L=34,R=10,T=10,B=28,S=Math.min(W-L-R,H-T-B);
+  const x=v=>L+v*S,y=v=>T+(1-v)*S;
+  for(const v of [0,.25,.5,.75,1]){svg.append(el('line',{x1:x(0),x2:x(1),y1:y(v),y2:y(v),stroke:'var(--grid)'}));svg.append(el('text',{x:L-5,y:y(v)+3,'text-anchor':'end'},(v*100)+'%'));svg.append(el('text',{x:x(v),y:T+S+16,'text-anchor':'middle'},(v*100)+'%'))}
+  svg.append(el('line',{x1:x(0),y1:y(0),x2:x(1),y2:y(1),stroke:'var(--line)','stroke-dasharray':'4 4'}));
+  if(!rel){$('calnote').textContent='Appears after combo-v1 is frozen. Dashed line = perfect calibration.';return}
+  const pts=rel.filter(b=>b.n>0);const maxn=Math.max(...pts.map(b=>b.n));
+  svg.append(el('path',{d:pts.map((b,i)=>(i?'L':'M')+x(b.mean_pred)+','+y(b.observed)).join(''),fill:'none',stroke:'var(--cyan)','stroke-width':2}));
+  pts.forEach(b=>{const c=el('circle',{cx:x(b.mean_pred),cy:y(b.observed),r:4+6*b.n/maxn,fill:'rgba(67,212,255,.25)',stroke:'var(--cyan)','stroke-width':1.5});
+    c.onpointermove=e=>showTip(e,`${b.bucket}: predicted ${(b.mean_pred*100).toFixed(0)}%, observed ${(b.observed*100).toFixed(0)}%, n=${b.n}`);c.onpointerleave=()=>tip.hidden=true;svg.append(c)});
+  $('calnote').textContent='Training data (in-sample). Dot size = markets in bucket. Dashed line = perfect calibration.'}
+
+function coefficients(c){const svg=$('coef');svg.replaceChildren();if(!c){svg.append(el('text',{x:10,y:110},'combo-v1 not frozen yet: no coefficients'));return}
+  const names=Object.keys(c.ci95).filter(k=>k!=='intercept');const W=420,L=118,R=14,T=10,rowH=36;svg.setAttribute('viewBox',`0 0 ${W} ${T+rowH*names.length+26}`);
+  const vals=names.flatMap(n=>c.ci95[n]);let lo=Math.min(0,...vals),hi=Math.max(0,...vals);const pad=(hi-lo)*.1||.1;lo-=pad;hi+=pad;const x=v=>L+(v-lo)/(hi-lo)*(W-L-R);
+  svg.append(el('line',{x1:x(0),x2:x(0),y1:T,y2:T+rowH*names.length,stroke:'var(--line)'}));svg.append(el('text',{x:x(0),y:T+rowH*names.length+14,'text-anchor':'middle'},'0'));
+  names.forEach((n,i)=>{const [a,b]=c.ci95[n],v=c.coefficients[n],cy=T+rowH*i+rowH/2,keep=a>0||b<0;
+    svg.append(el('text',{x:L-8,y:cy+3,'text-anchor':'end',style:'fill:var(--ink2)'},n==='b_market_logit'?'market (logit)':n));
+    svg.append(el('line',{x1:x(a),x2:x(b),y1:cy,y2:cy,stroke:keep?'var(--cyan)':'var(--dim)','stroke-width':3,'stroke-linecap':'round'}));
+    const dt=el('circle',{cx:x(v),cy,r:5,fill:'var(--void)',stroke:keep?'var(--cyan)':'var(--dim)','stroke-width':2});
+    dt.onpointermove=e=>showTip(e,`${n}: ${v.toFixed(3)}  [${a.toFixed(3)}, ${b.toFixed(3)}]`);dt.onpointerleave=()=>tip.hidden=true;svg.append(dt)})}
+
+function signals(m,combo){const box=$('signals');box.replaceChildren();
+  const used=new Set(combo?combo.features:[]),dropped=new Set(combo?combo.dropped:[]);
+  m.signals.forEach(s=>{const r=document.createElement('div');r.className='sigrow';const n=document.createElement('div');n.className='n';n.textContent=s.name.replace(/_/g,' ');
+    const why=document.createElement('div');why.className='r';why.textContent=s.reason;
+    const inUse=s.features.some(f=>used.has(f)),isDropped=s.features.every(f=>dropped.has(f)||f==='s1_p');
+    const tag=document.createElement('span');tag.className='tag '+(!combo?'warn':inUse?'good':'dim');tag.textContent=!combo?'pending':inUse?'in model':'dropped';
+    if(combo&&!inUse&&!isDropped){tag.className='tag dim';tag.textContent='not used'}
+    r.append(n,why,tag);box.append(r)});
+  const s6=document.createElement('div');s6.className='sigrow';s6.innerHTML='<div class="n">s6 perp basis</div><div class="r">Not built: futures data is not collected yet.</div><span class="tag dim">absent</span>';box.append(s6);
+  $('sigsub').textContent=m.signals.length?'frozen · '+m.signals.map(s=>s.sha).slice(0,2).join(' ')+'…':'registry missing'}
+
+function render(s,demo){
+  $('demo').classList.toggle('on',!!demo);
+  const st=s.trading_status,cls=st.startsWith('HALTED')?'bad':st.startsWith('WAITING')?'warn':'good',hb=s.heartbeat_age;
+  $('chips').replaceChildren(chip('Paper only','paper'),chip(st.split(':')[0],cls),chip(hb==null?'No heartbeat':'Heartbeat '+Math.round(hb)+'s',hb==null||hb>120?'bad':hb>45?'warn':'good'));
+  const okFeeds=s.feeds.filter(x=>x.status==='ok').length;
+  $('kpis').replaceChildren(
+    kpi('Paper bankroll',money(s.bankroll),'start $1,000.00'),
+    kpi('P&L after fees',(s.pnl_total>=0?'+':'')+money(s.pnl_total),s.trades.length+' recent trades',s.pnl_total>=0?'good':'bad'),
+    kpi('Max drawdown',f(s.max_drawdown*100,1)+'%','halt at 5% day / 10% week',s.max_drawdown>.05?'warn':''),
+    kpi('Open risk','$'+f(s.open_risk),s.open_positions+' positions · cap 3%'),
+    kpi('Spot proxy',s.proxy&&s.proxy.price?'$'+Number(s.proxy.price).toLocaleString(undefined,{maximumFractionDigits:0}):'offline',okFeeds+'/'+s.feeds.length+' exchanges fresh',s.proxy&&s.proxy.price?'cy':'bad'));
+  $('eqsub').textContent=(s.equity.length-1)+' settled trades';
+  equity(s.equity);
+  const c=s.model&&s.model.combo;calibration(c&&c.training.reliability_calibrated);coefficients(c);signals(s.model||{signals:[]},c);
+  $('combosub').textContent=c?c.training.markets+' training markets':'awaiting freeze';
+  $('proxysub').textContent=s.proxy?'median of '+s.proxy.n_used+'/'+s.proxy.n_total:'';
+  table($('sources'),['Source','Mkts','Model','Market','Δ'],Object.entries(s.sources).map(([k,v])=>[k,v.markets,f(v.log_loss,4),f(v.market_log_loss,4),[(v.vs_market>0?'+':'')+f(v.vs_market,4),v.vs_market<0?'good':'bad']]));
+  table($('feeds'),['Exchange','State','Price','Age'],s.feeds.map(x=>[x.exchange,[x.status,x.status==='ok'?'good':x.status==='missing'?'bad':'warn'],x.price==null?'—':Number(x.price).toFixed(1),f(x.age_s,1)+'s']));
+  table($('trades'),['Opened','Market','Side','Qty','Cost','Fee','Result','P&L'],s.trades.slice(0,12).map(x=>[tm(x.opened),x.ticker,x.side.toUpperCase(),x.contracts,'$'+f(x.cost),'$'+f(x.fee),x.result||'open',x.pnl==null?'—':[money(x.pnl),x.pnl>=0?'good':'bad']]));
+  table($('decisions'),['Time','Market','P(yes)','Action','Reason'],s.decisions.slice(0,10).map(x=>[tm(x.ts),x.ticker,f(x.p_yes,3),[x.action.toUpperCase(),x.action==='skip'?'dim':'cy'],x.reason||'']));
+  const p=s.passive_research;$('passive').textContent=`Passive (research): ${p.resolved} resolved, fill rate ${p.fill_rate==null?'—':(p.fill_rate*100).toFixed(0)+'%'}, P&L ${money(p.pnl)}. Optimistic: queue position unknown.`;
+  table($('alerts'),['Time','Kind','Detail'],s.alerts.map(x=>[tm(x.ts),[x.kind,'warn'],x.detail]));
+}
+
+function demoState(){let seed=7;const r=()=>(seed=(seed*16807)%2147483647)/2147483647;const now=Date.now()/1000;let eq=1000;const curve=[[null,1000]],trades=[],decisions=[];
+  let peak=1000,dd=0;
+  for(let i=0;i<48;i++){const win=r()<.55,side=r()<.5?'yes':'no',n=1+Math.floor(r()*4),cost=+(n*(.38+r()*.2)).toFixed(2),fee=+(Math.ceil(.07*n*.24*100)/100).toFixed(2);
+    const pnl=+((win?n:0)-cost-fee).toFixed(2);eq+=pnl;peak=Math.max(peak,eq);dd=Math.max(dd,(peak-eq)/peak);const ts=now-(48-i)*1800;curve.push([ts,+eq.toFixed(2)]);
+    trades.unshift({opened:ts-900,ticker:'KXBTC15M-DEMO-'+(100+i),side,contracts:n,cost,fee,result:win?side:(side==='yes'?'no':'yes'),pnl});
+    decisions.unshift({ts:ts-900,ticker:'KXBTC15M-DEMO-'+(100+i),p_yes:+(.3+r()*.4).toFixed(3),action:r()<.4?'skip':'yes',reason:r()<.4?'no side clears margin after fees':''})}
+  decisions.forEach(d=>{if(d.action==='skip')d.reason='no side clears margin after fees';else d.reason=''});
+  const rel=[[.05,.06,14],[.15,.13,22],[.25,.27,31],[.35,.33,38],[.45,.47,44],[.55,.52,41],[.65,.68,35],[.75,.73,27],[.85,.88,19],[.95,.93,9]].map((b,i)=>({bucket:i*10+'-'+(i+1)*10+'%',mean_pred:b[0],observed:b[1],n:b[2]}));
+  return {demo:true,now,mode:'PAPER ONLY',trading_status:'ACTIVE (paper)',heartbeat_age:6,bankroll:+eq.toFixed(2),pnl_total:+(eq-1000).toFixed(2),max_drawdown:dd,open_risk:7.4,open_positions:2,
+    proxy:{price:65184,n_used:3,n_total:4,status:'ok'},
+    feeds:[{exchange:'bitstamp',status:'ok',price:65181.2,age_s:1.4},{exchange:'coinbase',status:'ok',price:65184.0,age_s:.8},{exchange:'gemini',status:'stale',price:65120.5,age_s:14.2},{exchange:'kraken',status:'ok',price:65186.9,age_s:2.1}],
+    equity:curve,trades,decisions,
+    sources:{'combo-v1':{markets:212,log_loss:.6712,market_log_loss:.6745,vs_market:-.0033},'s1-ewma-t-recon-v1':{markets:212,log_loss:.6911,market_log_loss:.6745,vs_market:.0166},'market-mid':{markets:212,log_loss:.6745,market_log_loss:.6745,vs_market:0}},
+    passive_research:{resolved:96,filled:31,fill_rate:.323,pnl:2.41},
+    alerts:[{ts:now-5400,kind:'heartbeat',detail:'collector silent for 131s (laptop sleep)'}],
+    model:{signals:[
+      {name:'s1_vol_distance',sha:'8c715712ed81',features:['s1_z','s1_p'],reason:'Distance to target in volatility units drives the chance of finishing above it.'},
+      {name:'s2_exchange_imbalance',sha:'a1b2c3d4e5f6',features:['s2_imb'],reason:'More resting bids than asks absorbs selling: short-horizon price pressure.'},
+      {name:'s3_momentum',sha:'b2c3d4e5f6a1',features:['s3_r1','s3_r3','s3_r5'],reason:'Split orders and slow news diffusion can cause brief continuation.'},
+      {name:'s4_lead_lag',sha:'c3d4e5f6a1b2',features:['s4_dev'],reason:'The venue that gets informed flow first leads the median price.'},
+      {name:'s5_kalshi_book',sha:'d4e5f6a1b2c3',features:['s5_imb','s5_drift'],reason:'Informed Kalshi traders show up as one-sided depth and unfinished mid moves.'}],
+      combo:{features:['s1_z','s5_drift'],dropped:['s2_imb','s3_r1','s3_r3','s3_r5','s4_dev','s5_imb'],
+        coefficients:{intercept:.01,b_market_logit:.93,s1_z:.21,s5_drift:.14},
+        ci95:{intercept:[-.12,.14],b_market_logit:[.78,1.08],s1_z:[.06,.37],s5_drift:[.02,.27]},training:{markets:212,reliability_calibrated:rel}}}}}
+
+async function load(){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)throw 0;const s=await r.json();if(s.error)throw 0;render(s,false)}catch(e){render(demoState(),true)}}
 load();setInterval(load,5000);
-</script></body></html>
+</script>

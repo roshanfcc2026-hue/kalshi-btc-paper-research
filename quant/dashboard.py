@@ -45,8 +45,27 @@ def state(db, now=None, cfg=risk.DEFAULTS):
                 sources={s: dict(markets=n, log_loss=a / n, market_log_loss=b / n, vs_market=(a - b) / n) for s, (n, a, b) in src.items()},
                 trades=[dict(zip(('opened', 'ticker', 'side', 'contracts', 'cost', 'fee', 'result', 'pnl'), t)) for t in trades],
                 decisions=[dict(zip(('ts', 'ticker', 'source', 'p_yes', 'action', 'reason'), d)) for d in decisions],
-                passive_research=_safe_passive(db),
+                passive_research=_safe_passive(db), model=model_info(),
                 alerts=[dict(zip(('ts', 'kind', 'detail'), a)) for a in _q(db, 'SELECT ts,kind,detail FROM alerts ORDER BY id DESC LIMIT 10')])
+
+
+def model_info():
+    """Frozen signal registry and combo-v1 (if frozen): what the model is and how it was fitted."""
+    reg = Path(__file__).resolve().parent / 'registry'
+    out = dict(signals=[], combo=None)
+    try:
+        doc = json.loads((reg / 'signals-v1.json').read_text())
+        out['signals'] = [dict(name=e['name'], version=e['version'], features=e['features'], reason=e['reason'], sha=e['sha256'][:12]) for e in doc['signals']]
+        out['signals_frozen_at'] = doc['frozen_at']
+    except (OSError, ValueError, KeyError):
+        pass
+    try:
+        c = json.loads((reg / 'combo-v1.json').read_text())
+        out['combo'] = dict(features=c['features'], dropped=c['dropped'], coefficients=c['coefficients'], ci95=c['ci95'],
+                            frozen_at=c.get('frozen_at'), training=dict((k, c['training'][k]) for k in ('markets', 'in_sample_log_loss', 'reliability_calibrated')))
+    except (OSError, ValueError, KeyError):
+        pass
+    return out
 
 
 def _safe_passive(db):
@@ -63,7 +82,7 @@ def make_handler(db_path):
             self.end_headers(); self.wfile.write(body)
         def do_GET(self):
             if self.path == '/':
-                return self._send(200, HTML.read_bytes(), 'text/html; charset=utf-8')
+                return self._send(200, b'<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1">' + HTML.read_bytes(), 'text/html; charset=utf-8')
             if self.path == '/api/state':
                 uri = Path(db_path).resolve().as_uri() + '?mode=ro'
                 try:

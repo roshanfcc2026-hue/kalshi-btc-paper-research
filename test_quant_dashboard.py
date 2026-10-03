@@ -13,6 +13,7 @@ class DashboardTests(unittest.TestCase):
         s = dashboard.state(d, 1000)
         self.assertEqual(s['heartbeat_age'], 10); self.assertEqual(s['bankroll'], 1002.9); self.assertEqual(s['equity'][-1], [950, 1002.9])
         self.assertTrue(s['trading_status'].startswith(('WAITING', 'ACTIVE'))); json.dumps(s)
+        self.assertEqual(len(s['model']['signals']), 5)
     def test_halt_shown(self):
         d = qstore.connect(':memory:'); monitor.setup(d); monitor.risk.halt(d, 'daily loss limit', 5)
         self.assertEqual(dashboard.state(d, 10)['trading_status'], 'HALTED: daily loss limit')
@@ -23,7 +24,7 @@ class DashboardTests(unittest.TestCase):
             srv = ThreadingHTTPServer(('127.0.0.1', 0), dashboard.make_handler(p)); th = threading.Thread(target=srv.serve_forever, daemon=True); th.start()
             try:
                 base = 'http://127.0.0.1:%d' % srv.server_address[1]
-                self.assertIn(b'PAPER ONLY', urllib.request.urlopen(base + '/').read())
+                self.assertIn(b'PAPER ONLY', urllib.request.urlopen(base + '/').read().upper())
                 self.assertIn('PAPER ONLY', json.load(urllib.request.urlopen(base + '/api/state'))['mode'])
                 with self.assertRaises(urllib.error.HTTPError): urllib.request.urlopen(base + '/nope')
             finally:
