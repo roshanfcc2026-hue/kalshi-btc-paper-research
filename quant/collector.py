@@ -5,7 +5,8 @@ Usage: python -m quant.collector --cycles 0 --interval 5 --db quant.sqlite
 Create a file named STOP in the working directory to stop.
 """
 import argparse, os, time
-from . import feeds, kalshi_book, proxy, store as qstore
+from . import dataset
+from . import feeds, kalshi_book, monitor, proxy, runner, store as qstore
 
 
 def run_cycle(db, fetch=feeds.fetch_json, clock=time.time, kalshi_get=None, with_kalshi=True, exchanges=feeds.EXCHANGES):
@@ -40,14 +41,28 @@ def main(argv=None):
     p.add_argument('--cycles', type=int, default=1, help='0 = run until STOP file')
     p.add_argument('--interval', type=float, default=5.0)
     p.add_argument('--no-kalshi', action='store_true')
+    p.add_argument('--bot-db', default='research.sqlite', help='read-only source of official results')
     a = p.parse_args(argv)
-    db = qstore.connect(a.db)
+    db = qstore.connect(a.db); monitor.setup(db)
+    started = time.time()
+    model = runner.load_combo()  # None until combo-v1 is frozen: then nothing trades
     i = 0
     try:
         while a.cycles == 0 or i < a.cycles:
             if os.path.exists('STOP'):
                 print('Stop requested'); break
-            r = run_cycle(db, with_kalshi=not a.no_kalshi)
+            try:
+                r = run_cycle(db, with_kalshi=not a.no_kalshi)
+            except Exception as e:  # a crashed cycle counts toward the consecutive-error kill switch
+                r = dict(proxy=dict(price=None, n_used=0, n_total=0), errors=[('cycle', str(e))], kalshi=0)
+            halt = monitor.after_cycle(db, r, time.time(), started=started)
+            try:
+                outcomes = dataset.outcomes_from_bot_db(a.bot_db) if os.path.exists(a.bot_db) else {}
+                runner.step(db, time.time(), outcomes, model)
+            except Exception as e:
+                monitor.alert(db, 'runner', str(e)[:200], time.time())
+            monitor.run_scorecard_if_due(db, time.time())
+            if halt: print('PAPER TRADING HALTED:', halt, '(data collection continues; reset manually)', flush=True)
             print(time.strftime('%H:%M:%S'), 'proxy=%s n=%d/%d kalshi=%d errors=%d' % (
                 r['proxy']['price'], r['proxy']['n_used'], r['proxy']['n_total'], r['kalshi'], len(r['errors'])), flush=True)
             i += 1
