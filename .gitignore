@@ -44,3 +44,5 @@
 !dashboard_cycles.py
 !cycles-panel.js
 !test_dashboard_cycles.py
+!dashboard_plus.py
+!test_dashboard_plus.py
