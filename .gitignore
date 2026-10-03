@@ -33,3 +33,7 @@
 !quant/
 !quant/*.py
 !test_quant_*.py
+!quant/signals/
+!quant/signals/*.py
+!quant/registry/
+!quant/registry/*.json
