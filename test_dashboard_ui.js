@@ -54,3 +54,20 @@ test('both checkpoint cards mount inside the midpoint pane without historical UI
   context.location.hash='#remaining-calls'; events.get('hashchange')(); assert.equal(pane.hidden,false);
   assert.equal(ids.has('timing-comparison'),false);
 });
+
+test('stats deck computes skill vs market, Wilson range and ranks sources', () => {
+  const {computeStats, wilson} = require('./stats-panel.js');
+  const s = computeStats({forecast_evaluation: {
+    'market-mid-v1': {settled_markets: 100, correct: 55, accuracy: .55, brier: .24, log_loss: .67, horizon_cohorts: {}},
+    'volatility-proxy-v1': {settled_markets: 100, correct: 60, accuracy: .6, brier: .228, log_loss: .65,
+      horizon_cohorts: {'opening (10–15 min left)': {settled_markets: 40, brier: .25}}, mistakes: [{weak_direction: true}, {weak_direction: false}]}},
+    learning: {live_training_markets: 100, required_training_markets: 200}});
+  assert.equal(s.rows[0].source, 'volatility-proxy-v1');
+  assert.ok(Math.abs(s.rows[0].brierSkill - .05) < 1e-9);
+  assert.ok(Math.abs(s.rows[0].llDelta + .02) < 1e-9);
+  assert.equal(s.rows[0].nearMisses, 1);
+  assert.equal(s.best.source, 'volatility-proxy-v1');
+  assert.deepEqual(s.checkpoint, {have: 100, need: 200});
+  const [lo, hi] = wilson(60, 100); assert.ok(lo > .49 && lo < .51 && hi > .69 && hi < .70);
+  assert.equal(computeStats({}).rows.length, 0);
+});

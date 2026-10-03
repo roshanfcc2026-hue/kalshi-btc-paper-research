@@ -39,3 +39,5 @@
 !quant/registry/*.json
 !QUANT_PIPELINE.md
 !quant/*.html
+!futuristic-theme.css
+!stats-panel.js

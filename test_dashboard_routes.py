@@ -72,3 +72,11 @@ class DashboardRouteTests(unittest.TestCase):
 
 if __name__=='__main__':
     unittest.main()
+
+
+class FuturisticRouteTests(DashboardRouteTests):
+    def test_theme_and_stats_assets_served_and_quant_state_degrades(self):
+        for path in ('/futuristic-theme.css', '/stats-panel.js'):
+            handler=self.handler(path);handler.do_GET();self.assertEqual(handler.code,200)
+        with tempfile.TemporaryDirectory() as temporary, patch.object(dashboard,'ROOT',Path(temporary)):
+            handler=self.handler('/quant-state.json');handler.do_GET();self.assertEqual(handler.code,503)

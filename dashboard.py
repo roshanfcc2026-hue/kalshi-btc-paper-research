@@ -9,10 +9,24 @@ from dashboard_trading import build_trading_report
 
 ROOT=Path(__file__).resolve().parent
 
+def quant_state(path):
+    """Read-only summary of the quant paper pipeline (quant.sqlite); raises if it does not exist yet."""
+    from quant import dashboard as qd
+    if not Path(path).exists(): raise OSError('quant.sqlite missing')
+    db=sqlite3.connect(Path(path).resolve().as_uri()+'?mode=ro',uri=True)
+    try: return {k:v for k,v in qd.state(db).items() if k in ('trading_status','heartbeat_age','bankroll','pnl_total','max_drawdown','open_risk','proxy')}
+    finally: db.close()
+
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path=self.path.split('?')[0]
-        if path in ('/mistakes.json','/paper-signals.json'):
+        if path=='/quant-state.json':
+            try:
+                data=json.dumps(quant_state(ROOT/'quant.sqlite'),allow_nan=False).encode('utf-8')
+            except (sqlite3.Error, OSError, ValueError):
+                self.send_error(503,'Quant pipeline not running'); return
+            content_type='application/json'
+        elif path in ('/mistakes.json','/paper-signals.json'):
             try:
                 builder=build_mistake_report if path=='/mistakes.json' else build_trading_report
                 data=json.dumps(builder(ROOT/'research.sqlite'),allow_nan=False).encode('utf-8')
@@ -28,7 +42,9 @@ class Handler(BaseHTTPRequestHandler):
                    '/remaining-report.json':('remaining-lock-v1/report.json','application/json'),
                    '/remaining-panel.js':('remaining-panel.js','text/javascript; charset=utf-8'),
                    '/mistakes-panel.js':('mistakes-panel.js','text/javascript; charset=utf-8'),
-                   '/trading-panel.js':('trading-panel.js','text/javascript; charset=utf-8')}.get(path)
+                   '/trading-panel.js':('trading-panel.js','text/javascript; charset=utf-8'),
+                   '/futuristic-theme.css':('futuristic-theme.css','text/css; charset=utf-8'),
+                   '/stats-panel.js':('stats-panel.js','text/javascript; charset=utf-8')}.get(path)
             if not route: self.send_error(404); return
             try: data=(ROOT/route[0]).read_bytes()
             except FileNotFoundError: self.send_error(503,'Run the collector first'); return
