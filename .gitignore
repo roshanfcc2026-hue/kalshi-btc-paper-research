@@ -37,3 +37,4 @@
 !quant/signals/*.py
 !quant/registry/
 !quant/registry/*.json
+!QUANT_PIPELINE.md
