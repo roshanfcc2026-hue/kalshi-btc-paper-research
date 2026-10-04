@@ -81,6 +81,11 @@ a.classic:hover,a.classic:focus-visible{border-color:var(--cyan);box-shadow:var(
 .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font:11.5px var(--mono);color:var(--ink2)}
 .legend span{display:inline-flex;align-items:center;gap:6px}.legend .tile{width:11px;height:11px;display:inline-block}
 svg.hours{display:block;width:100%;height:auto;margin-top:8px}svg text{fill:var(--dim);font:10.5px var(--mono)}
+.scrollx{overflow-x:auto;margin-top:8px}
+table.models{width:100%;border-collapse:collapse;font:12.5px var(--mono);font-variant-numeric:tabular-nums;min-width:820px}
+table.models th{font:600 10px var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--edge)}
+table.models td{padding:7px 8px;border-bottom:1px solid var(--rule);white-space:nowrap}
+.kind{font:600 10px var(--display);letter-spacing:.12em;text-transform:uppercase;padding:2px 7px;border:1px solid currentColor}
 .foot{font:400 11.5px var(--mono);color:var(--dim)}
 #tip{position:fixed;z-index:40;pointer-events:none;background:var(--deck2);border:1px solid var(--cyan);box-shadow:var(--glow);padding:5px 9px;font:12px var(--mono)}
 .up{color:var(--up)}.down{color:var(--down)}.amber{color:var(--amber)}.cy{color:var(--cyan)}.dimc{color:var(--dim)}
@@ -102,7 +107,7 @@ svg.hours{display:block;width:100%;height:auto;margin-top:8px}svg text{fill:var(
     </div>
 
     <div class="pane call">
-      <div class="eyebrow">Prediction</div>
+      <div class="eyebrow">Prediction · <span id="modelName" class="cy">volatility-proxy-v1</span> <span id="modelKind" class="dimc">fixed formula · not trained</span></div>
       <div class="callrow">
         <div class="callbox"><div class="eyebrow">Original · fixed</div><div class="dir none" id="firstDir">—</div><div class="small" id="firstSub">no first call yet</div></div>
         <div class="callbox"><div class="eyebrow">Live · updating</div><div class="dir none" id="liveDir">—</div><div class="small" id="liveSub">waiting for live evidence</div></div>
@@ -136,6 +141,11 @@ svg.hours{display:block;width:100%;height:auto;margin-top:8px}svg text{fill:var(
       <div class="legend" id="legend"></div>
       <svg class="hours" id="hours" viewBox="0 0 600 120" role="img" aria-label="Accuracy by Pacific hour"></svg>
     </div>
+  </section>
+  <section class="pane" aria-label="Models">
+    <div class="eyebrow">Models · every source your bot records</div>
+    <div class="scrollx"><table class="models" id="models"></table></div>
+    <div class="small" id="modelsNote"></div>
   </section>
   <div class="foot">Paper only. Real-money entry stays SKIP. Probabilities are experimental and do not imply profitability.</div>
 </div>
@@ -219,9 +229,28 @@ function chips(){const c=$('chips');c.replaceChildren();const add=(t,k)=>{const 
   add('Paper only','cy');const age=STATUS&&STATUS.updated_at?Date.now()/1000-STATUS.updated_at:null;add(age==null?'Recorder offline':age<60?'Recorder live':'Recorder stale '+Math.round(age)+'s',age==null?'bad':age<60?'ok':'warn');
   add('Real money: SKIP','warn');if(QS)add('Quant '+QS.trading_status.split(':')[0],QS.trading_status.startsWith('HALT')?'bad':QS.trading_status.startsWith('WAIT')?'warn':'ok')}
 
+
+function kindOf(src){if(src==='volatility-proxy-v1')return ['Formula','not trained','amber'];if(src==='market-mid-v1')return ['Benchmark','Kalshi price','dimc'];
+  if(src.startsWith('supervised-live'))return ['Trained','live model','up'];if(src.startsWith('supervised-challenger'))return ['Trained','challenger','up'];
+  if(src.startsWith('openai'))return ['AI','OpenAI review','cy'];if(src.startsWith('combo'))return ['Trained','combo','up'];return ['Other','','dimc']}
+function models(){const t=$('models');t.replaceChildren();const ev=STATUS&&STATUS.forecast_evaluation||{},m=ev['market-mid-v1'],w=win();
+  const cur={};(STATUS&&STATUS.recent_predictions||[]).forEach(r=>{if(r.ticker===w.ticker&&!(r.source in cur))cur[r.source]=r.p_yes});
+  const h=d('tr');['Model','Type','This market','Settled','Accuracy','95% range','Brier','Log loss vs market'].forEach(x=>h.append(d('th',null,x)));t.append(h);
+  const srcs=Object.keys(ev).filter(k=>!k.startsWith('openai-abstention'));
+  srcs.sort((a,b)=>(a==='market-mid-v1')-(b==='market-mid-v1')||((ev[a].log_loss??9)-(ev[b].log_loss??9)));
+  if(!srcs.length){const r=d('tr');r.append(d('td','dimc','No scored models yet'));t.append(r)}
+  for(const k of srcs){const v=ev[k],[kind,sub,cls]=kindOf(k),r=d('tr'),cell=(x,c)=>{const e=d('td',c,x);r.append(e);return e};
+    cell(k,'cy');const kc=cell('');const tag=d('span','kind '+cls,kind);kc.append(tag,document.createTextNode(' '+sub));
+    const p=cur[k];const dd=direction(p!=null?p:null);cell(p!=null?dd.t:'—',p!=null?dd.c:'dimc');
+    cell(String(v.settled_markets||0));cell(pct(v.accuracy));const wr=wilson(v.correct||0,v.settled_markets||0);cell(wr?pct(wr[0],0)+'–'+pct(wr[1],0):'—','dimc');
+    cell(v.brier!=null?v.brier.toFixed(4):'—');const dl=m&&k!=='market-mid-v1'&&v.log_loss!=null?v.log_loss-m.log_loss:null;
+    cell(k==='market-mid-v1'?'benchmark':dl==null?'—':(dl>0?'+':'')+dl.toFixed(4)+(dl<0?' better':' worse'),k==='market-mid-v1'?'dimc':dl<0?'up':'down');t.append(r)}
+  const trained=srcs.some(k=>kindOf(k)[0]==='Trained');
+  $('modelsNote').textContent=trained?'Note: models are scored on the markets each one actually called; OpenAI abstentions are not counted.':'No trained model is recording yet. Run: py -3 -X utf8 bot.py train-live  (needs 200 settled markets; you have them), then restart bot.py monitor.';
+  const best=srcs.find(k=>kindOf(k)[0]==='Trained'&&cur[k]!=null);$('modelName').textContent=best||'volatility-proxy-v1';const kk=kindOf(best||'volatility-proxy-v1');$('modelKind').textContent=kk[0].toLowerCase()+' · '+kk[1]}
 async function get(u){try{const r=await fetch(u,{cache:'no-store'});return r.ok?await r.json():null}catch(e){return null}}
 async function load(){[SIG,STATUS,CYC,QS]=await Promise.all([get('/paper-signals.json'),get('/status.json'),get('/cycles.json'),get('/quant-state.json')]);
-  chips();hero();strip();score();windows()}
+  chips();hero();strip();score();windows();models()}
 load();setInterval(load,5000);ring();setInterval(ring,1000);
 if(typeof module!=='undefined')module.exports={direction,action,wilson};
 })();
